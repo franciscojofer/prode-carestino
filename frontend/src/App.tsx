@@ -1,3 +1,9 @@
+// File: frontend/src/App.tsx
+// Purpose: Top-level React component.
+// Functionality: Placeholder splash that confirms the design tokens and
+// fonts are wired up correctly. Real routing is added in block 6.
+// Role: Replaced once the screens (Login, Torneo, Predicciones, etc.) land.
+
 export default function App() {
   return (
     <div className="min-h-screen bg-surface-alt flex items-center justify-center px-6">

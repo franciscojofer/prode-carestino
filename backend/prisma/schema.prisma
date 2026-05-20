@@ -1,9 +1,15 @@
-// Schema Prisma — Prode Carestino Mundial 2026
+// File: backend/prisma/schema.prisma
+// Purpose: Database schema for the Prode Carestino tournament app.
+// Functionality: Defines users, login lockout state, teams, groups,
+// tournament rounds, matches, predictions and a small key-value config table.
+// Role: Single source of truth for the SQLite schema; Prisma generates both
+// the migrations and the typed client used across the backend.
 //
-// Convenciones:
-// - Los nombres de modelos y campos siguen el prompt original (camelCase en JS, snake_case en DB no se usa aquí).
-// - SQLite no soporta enums nativos: `status` y `lockoutLevel` se manejan como string/int validados en la app.
-// - Todas las fechas se guardan en UTC. La conversión a UTC-3 (Argentina) se hace en el frontend.
+// Conventions:
+// - All datetimes are stored in UTC. The frontend converts to Argentina
+//   time (UTC-3) for display.
+// - SQLite has no native enums; `Match.status` and `LoginAttempt.lockoutLevel`
+//   are validated at the application layer.
 
 generator client {
   provider = "prisma-client-js"
@@ -14,19 +20,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Application user. The seeded admin uses the literal email "admin" as a
+// reserved login; everyone else uses a normal email.
 model User {
   id            Int      @id @default(autoincrement())
   nombre        String
   apellido      String
   cuil          String   @unique
-  email         String   @unique // funciona como username; el admin puede ser "admin"
+  email         String   @unique
   passwordHash  String
   isAdmin       Boolean  @default(false)
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
 
-  // Ronda desde la que el usuario suma puntos.
-  // Al crearlo, se setea = ronda activa al momento del alta.
+  // Round from which the user starts accruing points (rule 4.7). Set to the
+  // active round at the moment of registration.
   joinedRoundId Int?
   joinedRound   TournamentRound? @relation(fields: [joinedRoundId], references: [id])
 
@@ -36,57 +44,67 @@ model User {
   @@index([isActive])
 }
 
+// One row per user tracking failed-login attempts and the current lockout
+// state. Maintained by the loginAttempt service (rule 4.9).
 model LoginAttempt {
   userId       Int       @id
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   failedCount  Int       @default(0)
   lockedUntil  DateTime?
-  // Se incrementa cada vez que se llega a 5 fallos consecutivos.
-  // No se resetea con login exitoso; vuelve a 0 tras 24h sin actividad fallida.
+  // Increments each time the user hits MAX_ATTEMPTS. Resets to 0 only after
+  // 24 h with no failures (never on a successful login).
   lockoutLevel Int       @default(0)
   lastFailedAt DateTime?
 }
 
+// National team. `nameEs` is the Argentine-Spanish display name.
 model Team {
-  id          Int    @id @default(autoincrement())
-  nameEs      String // "Argentina", "Bosnia-Herz.", "Países Bajos", etc.
-  code        String @unique // "ARG", "BIH", "NED"
-  flagEmoji   String // "🇦🇷"
-  groupId     Int?
-  group       Group? @relation(fields: [groupId], references: [id])
+  id        Int    @id @default(autoincrement())
+  nameEs    String
+  code      String @unique
+  flagEmoji String
+  groupId   Int?
+  group     Group? @relation(fields: [groupId], references: [id])
 
   homeMatches Match[] @relation("home")
   awayMatches Match[] @relation("away")
 }
 
+// Group stage container. The World Cup 2026 has 12 groups, A through L.
 model Group {
   id    Int    @id @default(autoincrement())
-  name  String @unique // "A", "B", "C"... "L" en Mundial 2026 (12 grupos)
+  name  String @unique
   teams Team[]
 }
 
+// A round of the tournament. `orderIndex` is the canonical sort key used by
+// the joinedRound comparison (rule 4.7) and the leaderboard filter.
 model TournamentRound {
   id         Int       @id @default(autoincrement())
-  name       String // "Fase de Grupos - Fecha 1", "Octavos", "Final", etc.
-  orderIndex Int       @unique // 1..N — usado para comparaciones (>=) en joinedRound
+  name       String
+  orderIndex Int       @unique
   startsAt   DateTime
   endsAt     DateTime?
   isKnockout Boolean   @default(false)
 
-  matches        Match[] // partidos originalmente programados en esta ronda
-  countedMatches Match[] @relation("countsForRound") // partidos cuyos puntos cuentan acá (puede diferir si hubo postergación)
+  // Matches originally scheduled for this round.
+  matches        Match[]
+  // Matches whose points actually count toward this round (may differ from
+  // `matches` when the admin reschedules a postponed game — rule 4.5).
+  countedMatches Match[] @relation("countsForRound")
   joinedUsers    User[]
 }
 
+// A single match. Result fields are nullable until the admin posts them.
 model Match {
   id Int @id @default(autoincrement())
 
-  // Ronda original a la que pertenecía el partido (no cambia).
+  // Round this match originally belongs to (immutable).
   roundId Int
   round   TournamentRound @relation(fields: [roundId], references: [id])
 
-  // Ronda en la que efectivamente cuenta el partido para la tabla.
-  // Por defecto igual a roundId; el admin puede modificarlo si un partido se reprograma.
+  // Round whose leaderboard the match contributes to. Defaults to roundId
+  // and is editable by the admin when a match is moved (rule 4.5).
   countsForRoundId Int
   countsForRound   TournamentRound @relation("countsForRound", fields: [countsForRoundId], references: [id])
 
@@ -95,24 +113,27 @@ model Match {
   awayTeamId Int
   awayTeam   Team @relation("away", fields: [awayTeamId], references: [id])
 
-  scheduledAt DateTime // horario actual del partido (puede haber sido modificado)
-  kickoffAt   DateTime? // horario real de inicio (informativo)
+  // Current scheduled kickoff (may be rescheduled).
+  scheduledAt DateTime
+  // Actual kickoff timestamp (informational).
+  kickoffAt   DateTime?
 
-  // Resultado de 120 minutos (sin penales).
+  // Score at the end of 120 minutes (penalties excluded — rule 4.1).
   homeGoals Int?
   awayGoals Int?
 
   isKnockout Boolean @default(false)
 
-  // scheduled | finished | postponed | cancelled
+  // One of: scheduled | finished | postponed | cancelled.
   status String @default("scheduled")
 
-  // Si true, el partido no suma puntos a nadie aunque tenga resultado cargado.
+  // When true the match awards 0 points to everyone, regardless of goals.
+  // Used for admin overrides (rule 4.6).
   resolvedAdministratively Boolean @default(false)
 
-  // Si los 120min terminaron empatados y se definió por penales, ID del equipo ganador.
-  // Se usa en la regla de scoring (excepción de eliminatorias) para asignar 3 puntos
-  // a quienes hayan predicho ese equipo.
+  // If 120 min ended in a draw and the tie was broken by penalties, this
+  // holds the winning team. The scoring engine uses it for the knockout
+  // exception (rule 4.1).
   winnerByPenaltiesTeamId Int?
 
   predictions Prediction[]
@@ -122,6 +143,9 @@ model Match {
   @@index([scheduledAt])
 }
 
+// A user's prediction for one match. Unique per (user, match).
+// `pointsAwarded` and `isExact` are recomputed by the scoring engine each
+// time the admin updates a match result.
 model Prediction {
   id            Int      @id @default(autoincrement())
   userId        Int
@@ -139,6 +163,8 @@ model Prediction {
   @@index([matchId])
 }
 
+// Simple key-value table for application-wide settings (e.g. tournament
+// status flags). Kept intentionally small to avoid building a config UI.
 model AppConfig {
   key   String @id
   value String

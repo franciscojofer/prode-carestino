@@ -1,14 +1,19 @@
-// Seed inicial — Prode Carestino Mundial 2026
-//
-// Este archivo se completa en el bloque 5. Por ahora es un placeholder que sólo
-// crea el usuario admin para permitir login en cuanto haya endpoints de auth.
+// File: backend/prisma/seed.ts
+// Purpose: Idempotent seed script that bootstraps an empty database.
+// Functionality: Creates (or refreshes) the seeded admin user using the
+// credentials from the environment. Tournament data (rounds, groups, teams,
+// matches) is added in block 5 of the implementation plan.
+// Role: Run once after `prisma migrate dev` via `npm run seed`. Safe to run
+// repeatedly — it upserts instead of inserting blindly.
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-async function main() {
+// Ensures the seeded admin account exists with the configured credentials.
+// Side effects: writes one row to `User`.
+async function seedAdmin(): Promise<void> {
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD ?? 'SSGG_admin_2410';
   const passwordHash = await bcrypt.hash(adminPassword, 12);
@@ -19,6 +24,7 @@ async function main() {
     create: {
       nombre: 'Admin',
       apellido: 'Carestino',
+      // CUIL is required by the schema but irrelevant for the system user.
       cuil: '00-00000000-0',
       email: adminEmail,
       passwordHash,
@@ -27,11 +33,15 @@ async function main() {
     },
   });
 
-  // TODO (bloque 5): poblar TournamentRound, Group, Team, Match con
-  // el fixture oficial del Mundial 2026 (verificar manualmente).
-
   // eslint-disable-next-line no-console
   console.log(`Seed completo. Admin: ${adminEmail}`);
+}
+
+async function main(): Promise<void> {
+  await seedAdmin();
+
+  // TODO (block 5): populate TournamentRound, Group, Team and Match with
+  // the official Mundial 2026 fixture (must be verified manually).
 }
 
 main()
