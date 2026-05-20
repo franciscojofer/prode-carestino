@@ -1,0 +1,27 @@
+node_modules/
+dist/
+build/
+.DS_Store
+*.log
+npm-debug.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Base de datos
+*.db
+*.db-journal
+backend/prisma/prode.db
+backend/prisma/migrations/dev.db*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/settings.local.json
+
+# Tests / coverage
+coverage/
+.nyc_output/
