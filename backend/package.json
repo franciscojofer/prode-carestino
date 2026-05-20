@@ -11,6 +11,7 @@
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "seed": "tsx prisma/seed.ts",
+    "seed:dev": "tsx prisma/seed-dev.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
