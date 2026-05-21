@@ -17,7 +17,8 @@ import { PrediccionesScreen } from './screens/PrediccionesScreen';
 import { FixtureScreen } from './screens/FixtureScreen';
 import { MasScreen } from './screens/MasScreen';
 import { ReglasScreen } from './screens/ReglasScreen';
-import { PlaceholderScreen } from './screens/PlaceholderScreen';
+import { AdminUsuariosScreen } from './screens/AdminUsuariosScreen';
+import { AdminResultadosScreen } from './screens/AdminResultadosScreen';
 
 export default function App() {
   return (
@@ -38,14 +39,8 @@ export default function App() {
 
         {/* Admin-only routes (hidden from non-admins in the UI) */}
         <Route element={<AdminRoute />}>
-          <Route
-            path="/admin/usuarios"
-            element={<PlaceholderScreen title="Panel Admin · Usuarios" block="9" />}
-          />
-          <Route
-            path="/admin/resultados"
-            element={<PlaceholderScreen title="Panel Admin · Resultados" block="9" />}
-          />
+          <Route path="/admin/usuarios" element={<AdminUsuariosScreen />} />
+          <Route path="/admin/resultados" element={<AdminResultadosScreen />} />
         </Route>
       </Route>
 

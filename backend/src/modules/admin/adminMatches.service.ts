@@ -27,6 +27,7 @@ const matchSelect = {
   isKnockout: true,
   resolvedAdministratively: true,
   winnerByPenaltiesTeamId: true,
+  placeholderLabel: true,
   homeTeam: { select: { id: true, nameEs: true, code: true, flagEmoji: true } },
   awayTeam: { select: { id: true, nameEs: true, code: true, flagEmoji: true } },
   round: { select: { id: true, name: true, orderIndex: true } },

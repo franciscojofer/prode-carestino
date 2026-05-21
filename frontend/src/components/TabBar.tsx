@@ -27,7 +27,13 @@ export function TabBar() {
     <nav className="grid grid-cols-5 border-t bg-surface">
       {TABS.map(({ to, label, Icon }) => {
         // `startsWith` so that `/mas/reglas` keeps the "Más" tab highlighted.
-        const isActive = pathname === to || pathname.startsWith(`${to}/`);
+        // Admin sub-routes belong conceptually to the "Más" tab (they are
+        // reached only through the Panel Admin entry), so any /admin/*
+        // path also highlights the "Más" tab.
+        const isActive =
+          pathname === to ||
+          pathname.startsWith(`${to}/`) ||
+          (to === '/mas' && pathname.startsWith('/admin/'));
         return (
           <NavLink
             key={to}
