@@ -1,0 +1,41 @@
+# Files excluded from the Docker build context so the image stays small
+# and reproducible.
+
+# Node modules (will be installed fresh inside the build stages)
+**/node_modules/
+
+# Compiled output
+**/dist/
+**/build/
+
+# Local databases
+**/*.db
+**/*.db-journal
+backend/prode.db
+backend/prisma/prode.db
+
+# Environments / secrets
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Git / VCS
+.git/
+.gitignore
+
+# Editor / OS metadata
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# CI / docs artefacts that don't belong in the image
+**/.eslintcache
+**/.npm/
+.claude/
+
+# Docker artefacts
+Dockerfile
+docker-compose.yml
+.dockerignore

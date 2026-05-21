@@ -22,6 +22,10 @@ backend/prisma/migrations/dev.db*
 .idea/
 .claude/settings.local.json
 
+# Production secrets / TLS material
+.env
+nginx/certbot/
+
 # Tests / coverage
 coverage/
 .nyc_output/

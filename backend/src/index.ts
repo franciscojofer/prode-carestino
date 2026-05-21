@@ -2,12 +2,17 @@
 // Purpose: Fastify entry point — builds the server, wires up plugins and
 // routes, and starts listening.
 // Functionality: Registers the global error handler (Zod + AppError mapping),
-// loads the db / cookies / auth plugins, mounts the auth routes under
-// `/api/auth`, and exposes `/health` for readiness probes.
+// loads the db / cookies / auth plugins, mounts the API routes under
+// `/api`, and in production also serves the compiled frontend from disk
+// with an SPA fallback to index.html.
 // Role: The single executable entry of the backend; invoked by `npm run dev`
 // (with tsx watch) and by the production container.
 
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import Fastify from 'fastify';
+import staticPlugin from '@fastify/static';
 import { ZodError } from 'zod';
 import { env } from './lib/env';
 import { AppError, TooManyRequestsError } from './lib/errors';
@@ -20,11 +25,19 @@ import { predictionsRoutes } from './modules/predictions/predictions.routes';
 import { adminUsersRoutes } from './modules/admin/adminUsers.routes';
 import { adminMatchesRoutes } from './modules/admin/adminMatches.routes';
 
-// Pretty logs only in development to keep production output JSON-friendly.
 const isDev = env.NODE_ENV !== 'production';
 
+// Resolve `__dirname` ourselves because we run as ES modules.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Path to the compiled frontend bundle. In a Docker / production layout
+// the repo's `frontend/dist` sits next to `backend/`, so the relative
+// resolution works both inside the container and on a local
+// `npm run build && npm start` run.
+const FRONTEND_DIST = resolve(__dirname, '..', '..', 'frontend', 'dist');
+
 // Constructs the Fastify instance with all plugins and routes wired up.
-// Returned (not started) so tests can reuse the same builder.
 // Inputs: none. Output: a ready-to-listen FastifyInstance.
 export async function buildServer() {
   const app = Fastify({
@@ -36,6 +49,9 @@ export async function buildServer() {
           },
         }
       : true,
+    // Trust X-Forwarded-* headers from the reverse proxy so request IPs
+    // and protocols (http vs https) are read correctly behind nginx.
+    trustProxy: true,
   });
 
   // Centralized error handler. Translates ZodError into structured 400
@@ -69,8 +85,8 @@ export async function buildServer() {
 
   app.get('/health', async () => ({ status: 'ok' }));
 
-  // All business routes live under `/api` to keep the static frontend served
-  // by `@fastify/static` (in production) cleanly separated.
+  // All business routes live under `/api` to keep the static frontend
+  // (served below in production) cleanly separated.
   await app.register(
     async (api) => {
       await api.register(authRoutes, { prefix: '/auth' });
@@ -81,6 +97,32 @@ export async function buildServer() {
     },
     { prefix: '/api' },
   );
+
+  // Production-only: serve the compiled SPA from `frontend/dist`. When
+  // the bundle is missing (e.g. local dev where Vite serves the frontend
+  // separately) we skip this block silently.
+  if (!isDev && existsSync(FRONTEND_DIST)) {
+    await app.register(staticPlugin, {
+      root: FRONTEND_DIST,
+      // Index file is served at "/" by default.
+      prefix: '/',
+      // Reasonable caching for hashed Vite assets.
+      cacheControl: true,
+      maxAge: '1h',
+    });
+
+    // SPA fallback: any unmatched route that is NOT under /api should
+    // return the React shell so client-side routes (/torneo, /admin/…)
+    // load directly when the user refreshes.
+    app.setNotFoundHandler((req, reply) => {
+      if (req.url.startsWith('/api/')) {
+        return reply
+          .code(404)
+          .send({ error: 'NOT_FOUND', message: 'Ruta no encontrada' });
+      }
+      return reply.sendFile('index.html');
+    });
+  }
 
   return app;
 }

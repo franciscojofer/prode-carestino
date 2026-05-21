@@ -1,0 +1,73 @@
+# File: docker-compose.yml
+# Purpose: Production compose stack for prode.carestino.com.
+# Functionality: Brings up the Fastify+SPA app behind an Nginx reverse
+# proxy that terminates TLS with Let's Encrypt certificates managed by
+# Certbot. SQLite data lives on a named volume so it survives container
+# rebuilds.
+# Role: Used on the deployment host (AWS Lightsail, any VPS, etc.). For
+# Railway and other PaaS providers see docs/DEPLOY-RAILWAY.md.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prode-app
+    restart: unless-stopped
+    environment:
+      # Required at startup — fail fast if missing.
+      JWT_SECRET: ${JWT_SECRET}
+      # SQLite DB lives inside the mounted volume.
+      DATABASE_URL: "file:/data/prode.db"
+      NODE_ENV: production
+      PORT: 3000
+      # Secure cookies must be true when behind HTTPS (Nginx terminates TLS).
+      COOKIE_SECURE: "true"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-SSGG_admin_2410}
+    volumes:
+      - prode-data:/data
+    networks:
+      - prode-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: prode-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - prode-net
+
+  # Certbot runs in "command" mode rather than as a long-running service:
+  # the operator invokes it via `docker compose run --rm certbot …` for
+  # the initial certificate issuance and the periodic renewal.
+  certbot:
+    image: certbot/certbot:latest
+    container_name: prode-certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    # No restart policy on purpose: this container is meant to be a
+    # one-shot command runner.
+
+volumes:
+  prode-data:
+
+networks:
+  prode-net:
+    driver: bridge
