@@ -17,6 +17,8 @@ import authPlugin from './plugins/auth';
 import { authRoutes } from './modules/auth/auth.routes';
 import { tournamentRoutes } from './modules/tournament/tournament.routes';
 import { predictionsRoutes } from './modules/predictions/predictions.routes';
+import { adminUsersRoutes } from './modules/admin/adminUsers.routes';
+import { adminMatchesRoutes } from './modules/admin/adminMatches.routes';
 
 // Pretty logs only in development to keep production output JSON-friendly.
 const isDev = env.NODE_ENV !== 'production';
@@ -74,6 +76,8 @@ export async function buildServer() {
       await api.register(authRoutes, { prefix: '/auth' });
       await api.register(tournamentRoutes, { prefix: '/tournament' });
       await api.register(predictionsRoutes, { prefix: '/predictions' });
+      await api.register(adminUsersRoutes, { prefix: '/admin/users' });
+      await api.register(adminMatchesRoutes, { prefix: '/admin/matches' });
     },
     { prefix: '/api' },
   );
