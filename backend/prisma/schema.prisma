@@ -136,6 +136,12 @@ model Match {
   // exception (rule 4.1).
   winnerByPenaltiesTeamId Int?
 
+  // Human-readable slot label used by knockout fixtures whose actual
+  // teams are not yet decided ("1A vs 3CEFHI", "W73 vs W75"). Stored
+  // verbatim from the FIFA fixture so the admin can recognise the slot
+  // when filling in the real teams via PATCH /admin/matches/:id.
+  placeholderLabel String?
+
   predictions Prediction[]
 
   @@index([roundId])

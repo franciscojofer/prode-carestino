@@ -36,7 +36,9 @@ export const createMatchSchema = z.object({
 
 // Generic update payload. All fields optional — the admin updates any
 // subset of them. `scheduledAt` accepts an ISO 8601 string from the
-// frontend and converts to a Date for Prisma.
+// frontend and converts to a Date for Prisma. `homeTeamId` /
+// `awayTeamId` exist for knockout slots created with the TBD placeholder:
+// once the previous round resolves, the admin assigns the real teams.
 export const updateMatchSchema = z
   .object({
     scheduledAt: z
@@ -45,6 +47,8 @@ export const updateMatchSchema = z
       .transform((v) => new Date(v))
       .optional(),
     countsForRoundId: z.number().int().positive().optional(),
+    homeTeamId: z.number().int().positive().optional(),
+    awayTeamId: z.number().int().positive().optional(),
     status: matchStatusEnum.optional(),
     resolvedAdministratively: z.boolean().optional(),
   })

@@ -160,6 +160,24 @@ export async function updateMatch(
     if (!round) throw new ValidationError('La ronda destino no existe');
   }
 
+  // Validate team references when the admin is filling in a knockout slot
+  // that previously pointed at the TBD placeholder.
+  const finalHomeTeamId = input.homeTeamId ?? match.homeTeamId;
+  const finalAwayTeamId = input.awayTeamId ?? match.awayTeamId;
+  if (input.homeTeamId !== undefined || input.awayTeamId !== undefined) {
+    if (finalHomeTeamId === finalAwayTeamId) {
+      throw new ValidationError('Los equipos local y visitante deben ser distintos');
+    }
+    if (input.homeTeamId !== undefined) {
+      const t = await prisma.team.findUnique({ where: { id: input.homeTeamId } });
+      if (!t) throw new ValidationError('El equipo local no existe');
+    }
+    if (input.awayTeamId !== undefined) {
+      const t = await prisma.team.findUnique({ where: { id: input.awayTeamId } });
+      if (!t) throw new ValidationError('El equipo visitante no existe');
+    }
+  }
+
   const previousAdminFlag = match.resolvedAdministratively;
 
   await prisma.match.update({
@@ -169,6 +187,8 @@ export async function updateMatch(
       ...(input.countsForRoundId !== undefined && {
         countsForRoundId: input.countsForRoundId,
       }),
+      ...(input.homeTeamId !== undefined && { homeTeamId: input.homeTeamId }),
+      ...(input.awayTeamId !== undefined && { awayTeamId: input.awayTeamId }),
       ...(input.status !== undefined && { status: input.status }),
       ...(input.resolvedAdministratively !== undefined && {
         resolvedAdministratively: input.resolvedAdministratively,
