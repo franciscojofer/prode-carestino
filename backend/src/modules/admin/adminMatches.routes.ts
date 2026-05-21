@@ -10,8 +10,14 @@ import {
   updateMatchSchema,
   matchListQuerySchema,
   matchIdParamSchema,
+  createMatchSchema,
 } from './adminMatches.schemas';
-import { listMatches, setMatchResult, updateMatch } from './adminMatches.service';
+import {
+  listMatches,
+  setMatchResult,
+  updateMatch,
+  createMatch,
+} from './adminMatches.service';
 
 export async function adminMatchesRoutes(app: FastifyInstance) {
   app.addHook('onRequest', app.requireAdmin);
@@ -21,6 +27,14 @@ export async function adminMatchesRoutes(app: FastifyInstance) {
     const { roundId } = matchListQuerySchema.parse(req.query);
     const matches = await listMatches(app.prisma, roundId);
     return { matches };
+  });
+
+  // POST /admin/matches — adds a new fixture (typically a knockout pairing
+  // once the group stage has decided who advances).
+  app.post('/', async (req, reply) => {
+    const input = createMatchSchema.parse(req.body);
+    const match = await createMatch(app.prisma, input);
+    return reply.code(201).send({ match });
   });
 
   // PUT /admin/matches/:id/result — stores the final score and recomputes

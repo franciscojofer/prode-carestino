@@ -10,7 +10,11 @@
 import type { Prisma } from '../../lib/db';
 import { NotFoundError, ValidationError } from '../../lib/errors';
 import { applyPredictionScoring } from '../scoring/scoring';
-import type { MatchResultInput, UpdateMatchInput } from './adminMatches.schemas';
+import type {
+  MatchResultInput,
+  UpdateMatchInput,
+  CreateMatchInput,
+} from './adminMatches.schemas';
 
 // Common select used by `listMatches` so the row shape stays consistent.
 const matchSelect = {
@@ -28,6 +32,51 @@ const matchSelect = {
   round: { select: { id: true, name: true, orderIndex: true } },
   countsForRound: { select: { id: true, name: true, orderIndex: true } },
 } as const;
+
+// Creates a new match — used by the admin to load knockout fixtures once
+// the group stage decides which teams advance.
+// Inputs: prisma client and validated body. Resolves `countsForRoundId` to
+// `roundId` and `isKnockout` to the round's flag when either is omitted.
+// Output: the created match id. Side effects: inserts `Match`.
+// Throws: `ValidationError` for missing round/team or for two equal teams.
+export async function createMatch(
+  prisma: Prisma,
+  input: CreateMatchInput,
+): Promise<{ id: number }> {
+  if (input.homeTeamId === input.awayTeamId) {
+    throw new ValidationError('Los equipos local y visitante deben ser distintos');
+  }
+
+  const [round, homeTeam, awayTeam] = await Promise.all([
+    prisma.tournamentRound.findUnique({ where: { id: input.roundId } }),
+    prisma.team.findUnique({ where: { id: input.homeTeamId } }),
+    prisma.team.findUnique({ where: { id: input.awayTeamId } }),
+  ]);
+  if (!round) throw new ValidationError('La ronda no existe');
+  if (!homeTeam) throw new ValidationError('El equipo local no existe');
+  if (!awayTeam) throw new ValidationError('El equipo visitante no existe');
+
+  if (input.countsForRoundId !== undefined && input.countsForRoundId !== input.roundId) {
+    const cf = await prisma.tournamentRound.findUnique({
+      where: { id: input.countsForRoundId },
+    });
+    if (!cf) throw new ValidationError('La ronda "cuenta para" no existe');
+  }
+
+  const created = await prisma.match.create({
+    data: {
+      roundId: input.roundId,
+      countsForRoundId: input.countsForRoundId ?? input.roundId,
+      homeTeamId: input.homeTeamId,
+      awayTeamId: input.awayTeamId,
+      scheduledAt: input.scheduledAt,
+      isKnockout: input.isKnockout ?? round.isKnockout,
+      status: 'scheduled',
+    },
+    select: { id: true },
+  });
+  return created;
+}
 
 // Lists matches optionally filtered by their original round.
 // Inputs: prisma client and optional `roundId`. Output: matches ordered by
