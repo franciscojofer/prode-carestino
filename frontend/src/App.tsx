@@ -13,6 +13,10 @@ import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { TorneoScreen } from './screens/TorneoScreen';
 import { EstadisticasScreen } from './screens/EstadisticasScreen';
+import { PrediccionesScreen } from './screens/PrediccionesScreen';
+import { FixtureScreen } from './screens/FixtureScreen';
+import { MasScreen } from './screens/MasScreen';
+import { ReglasScreen } from './screens/ReglasScreen';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
 
 export default function App() {
@@ -27,16 +31,10 @@ export default function App() {
         <Route path="/" element={<Navigate to="/torneo" replace />} />
         <Route path="/torneo" element={<TorneoScreen />} />
         <Route path="/estadisticas" element={<EstadisticasScreen />} />
-        <Route
-          path="/predicciones"
-          element={<PlaceholderScreen title="Predicciones" block="8" />}
-        />
-        <Route path="/fixture" element={<PlaceholderScreen title="Fixture" block="8" />} />
-        <Route path="/mas" element={<PlaceholderScreen title="Más" block="8" />} />
-        <Route
-          path="/mas/reglas"
-          element={<PlaceholderScreen title="Reglas del torneo" block="8" />}
-        />
+        <Route path="/predicciones" element={<PrediccionesScreen />} />
+        <Route path="/fixture" element={<FixtureScreen />} />
+        <Route path="/mas" element={<MasScreen />} />
+        <Route path="/mas/reglas" element={<ReglasScreen />} />
 
         {/* Admin-only routes (hidden from non-admins in the UI) */}
         <Route element={<AdminRoute />}>
