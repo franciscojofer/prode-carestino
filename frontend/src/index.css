@@ -1,7 +1,19 @@
+/*
+ * File: frontend/src/index.css
+ * Purpose: Global styles and design tokens for the Prode Carestino frontend.
+ * Functionality: Pulls in Tailwind's three layers, exposes the brand palette
+ * as CSS custom properties, sets the Montserrat font family on the body,
+ * and removes the native number-input spinners used on goal inputs.
+ * Role: Loaded once from `main.tsx`. Every Tailwind class and any component
+ * referencing `var(--brand-…)` etc. resolves against this file.
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Brand palette — single source of truth for colour tokens. Also surfaced
+ * as Tailwind classes through `tailwind.config.js`. */
 :root {
   --brand-orange: #ee5a1f;
   --brand-orange-dark: #d14e18;
@@ -35,7 +47,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Quita las flechas en inputs number — usado en inputs de goles */
+/* Remove the native spin buttons from number inputs. Used on the goal
+ * fields in the predictions screen so the layout stays compact. */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;

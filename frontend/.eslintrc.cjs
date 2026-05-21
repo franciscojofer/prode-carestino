@@ -1,3 +1,10 @@
+// File: frontend/.eslintrc.cjs
+// Purpose: ESLint configuration for the React + TypeScript frontend.
+// Functionality: Enables the TypeScript parser, the React Hooks lint rules,
+// and the React Refresh plugin so HMR-incompatible exports get flagged
+// early.
+// Role: Picked up by `npm run lint` and IDE integrations.
+
 module.exports = {
   root: true,
   env: { browser: true, es2022: true },
