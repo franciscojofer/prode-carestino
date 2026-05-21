@@ -11,6 +11,8 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
+import { TorneoScreen } from './screens/TorneoScreen';
+import { EstadisticasScreen } from './screens/EstadisticasScreen';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
 
 export default function App() {
@@ -23,11 +25,8 @@ export default function App() {
       {/* Authenticated routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Navigate to="/torneo" replace />} />
-        <Route path="/torneo" element={<PlaceholderScreen title="Torneo" block="7" />} />
-        <Route
-          path="/estadisticas"
-          element={<PlaceholderScreen title="Estadísticas" block="7" />}
-        />
+        <Route path="/torneo" element={<TorneoScreen />} />
+        <Route path="/estadisticas" element={<EstadisticasScreen />} />
         <Route
           path="/predicciones"
           element={<PlaceholderScreen title="Predicciones" block="8" />}
