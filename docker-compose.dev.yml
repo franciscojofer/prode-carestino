@@ -1,0 +1,27 @@
+# File: docker-compose.dev.yml
+# Purpose: Local development override that swaps the production TLS-enabled
+# nginx setup for a plain HTTP proxy so the stack can be exercised on
+# localhost without Let's Encrypt certificates.
+# Functionality:
+#   - Replaces the nginx config mount with nginx/nginx.local.conf (HTTP only).
+#   - Drops the 443 mapping (no TLS locally).
+#   - Disables the secure-cookie flag on the app so login works over HTTP.
+#   - Exposes app:3000 on the host as well, for direct API access when needed.
+# Role: Activated explicitly with
+#       `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d`.
+#       Never loaded in production.
+
+services:
+  app:
+    environment:
+      # Cookies cannot be `Secure` over plain HTTP — the browser would drop
+      # them and login would silently fail.
+      COOKIE_SECURE: "false"
+    ports:
+      - "3000:3000"
+
+  nginx:
+    ports: !override
+      - "80:80"
+    volumes: !override
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro

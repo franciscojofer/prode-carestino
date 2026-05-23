@@ -35,6 +35,25 @@ export default {
       boxShadow: {
         card: '0 1px 2px rgba(17, 24, 39, 0.04), 0 1px 3px rgba(17, 24, 39, 0.06)',
       },
+      // Page-level and item-level entrance animations. Used by Layout (every
+      // screen fades + slides up on mount) and by the prediction cards
+      // (stagger via inline animationDelay).
+      keyframes: {
+        'fade-slide-in': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'stagger-in': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-slide-in': 'fade-slide-in 220ms ease-out both',
+        // `backwards` so the inline opacity that dims locked / cancelled
+        // prediction cards stays applied once the entrance finishes.
+        'stagger-in': 'stagger-in 280ms ease-out backwards',
+      },
     },
   },
   plugins: [],

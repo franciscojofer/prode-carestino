@@ -60,21 +60,19 @@ const STAGE_TO_ORDER: Record<number, number> = {
   7: 9, // F   → Final
 };
 
-// FIFA code → flag emoji. Covers every team that appears in teams.csv
-// plus the seven Playoff placeholders (white flag).
+// FIFA code → flag emoji. Covers every team that appears in teams.csv,
+// including the six play-off winners decided in March 2026.
 const FLAG_BY_CODE: Record<string, string> = {
   ARG: '🇦🇷', ALG: '🇩🇿', AUS: '🇦🇺', AUT: '🇦🇹', BEL: '🇧🇪',
-  BRA: '🇧🇷', CAN: '🇨🇦', CIV: '🇨🇮', COL: '🇨🇴', CPV: '🇨🇻',
-  CRO: '🇭🇷', CUR: '🇨🇼', ECU: '🇪🇨', EGY: '🇪🇬', ENG: '🏴',
-  ESP: '🇪🇸', FRA: '🇫🇷', GER: '🇩🇪', GHA: '🇬🇭', HAI: '🇭🇹',
-  IRN: '🇮🇷', JOR: '🇯🇴', JPN: '🇯🇵', KOR: '🇰🇷', KSA: '🇸🇦',
-  MAR: '🇲🇦', MEX: '🇲🇽', NED: '🇳🇱', NOR: '🇳🇴', NZL: '🇳🇿',
-  PAN: '🇵🇦', PAR: '🇵🇾', POR: '🇵🇹', QAT: '🇶🇦', RSA: '🇿🇦',
-  SCO: '🏴', SEN: '🇸🇳', SUI: '🇨🇭', TUN: '🇹🇳', URU: '🇺🇾',
-  USA: '🇺🇸', UZB: '🇺🇿',
-  // Playoff placeholders — white flag, replaced when the play-off finishes.
-  FP01: '🏳️', FP02: '🏳️',
-  UEPA: '🏳️', UEPB: '🏳️', UEPC: '🏳️', UEPD: '🏳️',
+  BIH: '🇧🇦', BRA: '🇧🇷', CAN: '🇨🇦', CIV: '🇨🇮', COD: '🇨🇩',
+  COL: '🇨🇴', CPV: '🇨🇻', CRO: '🇭🇷', CUR: '🇨🇼', CZE: '🇨🇿',
+  ECU: '🇪🇨', EGY: '🇪🇬', ENG: '🏴', ESP: '🇪🇸', FRA: '🇫🇷',
+  GER: '🇩🇪', GHA: '🇬🇭', HAI: '🇭🇹', IRN: '🇮🇷', IRQ: '🇮🇶',
+  JOR: '🇯🇴', JPN: '🇯🇵', KOR: '🇰🇷', KSA: '🇸🇦', MAR: '🇲🇦',
+  MEX: '🇲🇽', NED: '🇳🇱', NOR: '🇳🇴', NZL: '🇳🇿', PAN: '🇵🇦',
+  PAR: '🇵🇾', POR: '🇵🇹', QAT: '🇶🇦', RSA: '🇿🇦', SCO: '🏴',
+  SEN: '🇸🇳', SUI: '🇨🇭', SWE: '🇸🇪', TUN: '🇹🇳', TUR: '🇹🇷',
+  URU: '🇺🇾', USA: '🇺🇸', UZB: '🇺🇿',
 };
 
 // Special team used for knockout matches whose pairings aren't decided yet.
@@ -216,12 +214,42 @@ async function seedRounds(): Promise<Map<number, number>> {
   return byIndex;
 }
 
+// Maps the obsolete play-off placeholder codes (used until March 2026,
+// when UEFA paths A-D and the FIFA inter-confederation playoffs were
+// resolved) to the real qualified nations. The seed renames any matching
+// rows so existing match references stay valid after the codes change.
+const OBSOLETE_PLACEHOLDER_CODES: Record<string, string> = {
+  UEPA: 'BIH',
+  UEPB: 'SWE',
+  UEPC: 'TUR',
+  UEPD: 'CZE',
+  FP01: 'COD',
+  FP02: 'IRQ',
+};
+
+// Renames legacy placeholder team rows in-place to their resolved codes
+// so the upsert by `code` below updates the existing row instead of
+// inserting a duplicate. Skips silently when the old row is missing.
+async function migrateObsoletePlaceholderTeams(): Promise<void> {
+  for (const [oldCode, newCode] of Object.entries(OBSOLETE_PLACEHOLDER_CODES)) {
+    const oldRow = await prisma.team.findUnique({ where: { code: oldCode } });
+    if (!oldRow) continue;
+    const collision = await prisma.team.findUnique({ where: { code: newCode } });
+    if (collision) continue; // new code already present; nothing to migrate.
+    await prisma.team.update({ where: { id: oldRow.id }, data: { code: newCode } });
+  }
+}
+
 // Upserts groups and teams from the CSV. Returns CSV team id → DB team id.
 // Also seeds the TBD placeholder team used by knockout matches.
 async function seedTeamsFromCsv(teams: CsvTeam[]): Promise<{
   byCsvId: Map<number, number>;
   tbdTeamId: number;
 }> {
+  // Rename any legacy play-off placeholder rows to their resolved codes
+  // before the upsert loop, so existing match references stay intact.
+  await migrateObsoletePlaceholderTeams();
+
   // Groups A..L
   const groupIds = new Map<string, number>();
   const groupLetters = Array.from(new Set(teams.map((t) => t.group))).sort();

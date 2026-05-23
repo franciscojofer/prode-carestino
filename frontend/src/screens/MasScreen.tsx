@@ -94,7 +94,7 @@ function MenuItem({ icon, label, onClick, chevron, badge, destructive }: MenuIte
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
+      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors active:bg-surface-alt"
     >
       {icon}
       <span

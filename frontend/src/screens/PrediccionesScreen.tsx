@@ -51,40 +51,45 @@ export function PrediccionesScreen() {
 
   const filled = matches.filter((m) => m.prediction !== null).length;
 
+  // Sticky header region pinned below the orange app bar — keeps the
+  // round selector and progress indicator visible while the user scrolls
+  // through the prediction cards.
+  const sticky = (
+    <div className="px-4 pt-3 pb-3 bg-surface-alt border-b">
+      <RoundSelector
+        label={round ? round.name : '—'}
+        onPrev={() => canPrev && setRoundId(orderedRounds[currentIdx - 1].id)}
+        onNext={() => canNext && setRoundId(orderedRounds[currentIdx + 1].id)}
+        canPrev={canPrev}
+        canNext={canNext}
+      />
+
+      {matches.length > 0 && (
+        <>
+          <div className="mt-3 flex items-center justify-between text-xs">
+            <span className="font-bold tracking-wider text-brand-navy">
+              PRONÓSTICOS CARGADOS
+            </span>
+            <span className="font-extrabold text-brand-orange">
+              {filled}/{matches.length}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-surface border">
+            <div
+              className="h-full rounded-full bg-brand-orange transition-all"
+              style={{
+                width: `${matches.length === 0 ? 0 : (filled / matches.length) * 100}%`,
+              }}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
-    <Layout title="Predicciones">
-      <div className="px-4 pt-3 pb-3">
-        <RoundSelector
-          label={round ? round.name : '—'}
-          onPrev={() => canPrev && setRoundId(orderedRounds[currentIdx - 1].id)}
-          onNext={() => canNext && setRoundId(orderedRounds[currentIdx + 1].id)}
-          canPrev={canPrev}
-          canNext={canNext}
-        />
-
-        {matches.length > 0 && (
-          <>
-            <div className="mt-3 flex items-center justify-between text-xs">
-              <span className="font-bold tracking-wider text-brand-navy">
-                PRONÓSTICOS CARGADOS
-              </span>
-              <span className="font-extrabold text-brand-orange">
-                {filled}/{matches.length}
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-surface-alt border">
-              <div
-                className="h-full rounded-full bg-brand-orange transition-all"
-                style={{
-                  width: `${matches.length === 0 ? 0 : (filled / matches.length) * 100}%`,
-                }}
-              />
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="px-4 pb-6 space-y-3">
+    <Layout title="Predicciones" stickyContent={sticky}>
+      <div className="px-4 pt-3 pb-6 space-y-3">
         {predictions.isLoading ? (
           <Card>
             <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
@@ -96,7 +101,9 @@ export function PrediccionesScreen() {
             </div>
           </Card>
         ) : (
-          matches.map((match) => <PredictionCard key={match.id} match={match} />)
+          matches.map((match, i) => (
+            <PredictionCard key={match.id} match={match} index={i} />
+          ))
         )}
       </div>
     </Layout>
@@ -118,17 +125,17 @@ function RoundSelector({ label, onPrev, onNext, canPrev, canNext }: RoundSelecto
         type="button"
         onClick={onPrev}
         disabled={!canPrev}
-        className="p-1 text-muted disabled:opacity-30"
+        className="p-1 text-muted disabled:opacity-30 transition-transform active:scale-90"
         aria-label="Ronda anterior"
       >
         <ChevronLeft size={18} />
       </button>
-      <div className="text-sm font-bold text-ink truncate px-2">{label}</div>
+      <div className="text-sm font-bold text-ink truncate px-2 transition-opacity">{label}</div>
       <button
         type="button"
         onClick={onNext}
         disabled={!canNext}
-        className="p-1 text-brand-orange disabled:opacity-30"
+        className="p-1 text-brand-orange disabled:opacity-30 transition-transform active:scale-90"
         aria-label="Ronda siguiente"
       >
         <ChevronRight size={18} />
@@ -137,9 +144,14 @@ function RoundSelector({ label, onPrev, onNext, canPrev, canNext }: RoundSelecto
   );
 }
 
-type PredictionCardProps = { match: MatchWithPrediction };
+type PredictionCardProps = { match: MatchWithPrediction; index: number };
 
-function PredictionCard({ match }: PredictionCardProps) {
+// Cap on the stagger so a 24-card round still finishes within ~600 ms.
+// First card has no delay; each subsequent card adds 40 ms until the cap.
+const STAGGER_STEP_MS = 40;
+const STAGGER_MAX_MS = 480;
+
+function PredictionCard({ match, index }: PredictionCardProps) {
   // Local input state held as strings — Number() conversion happens just
   // before the network call so an empty box doesn't accidentally save as 0.
   const [home, setHome] = useState(
@@ -218,11 +230,12 @@ function PredictionCard({ match }: PredictionCardProps) {
 
   const showError = error !== null;
   const dimmed = match.isLocked || match.status === 'cancelled';
+  const delay = Math.min(index * STAGGER_STEP_MS, STAGGER_MAX_MS);
 
   return (
     <div
-      className={`rounded-2xl bg-surface p-3 border ${showError ? 'border-danger' : ''}`}
-      style={{ opacity: dimmed ? 0.65 : 1 }}
+      className={`rounded-2xl bg-surface p-3 border animate-stagger-in transition-all active:scale-[0.995] ${showError ? 'border-danger' : ''}`}
+      style={{ opacity: dimmed ? 0.65 : 1, animationDelay: `${delay}ms` }}
     >
       <div className="flex items-center justify-between text-[10px] font-bold tracking-wider mb-2 text-muted">
         <span>

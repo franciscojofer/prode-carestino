@@ -12,7 +12,12 @@
 //   are validated at the application layer.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Build the query engine for every musl/openssl combination we deploy to:
+  //   - native:                          local dev (host arch).
+  //   - linux-musl-arm64-openssl-3.0.x:  Docker on Apple Silicon / arm64 hosts.
+  //   - linux-musl-openssl-3.0.x:        Docker on amd64 hosts (Lightsail, Railway).
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {

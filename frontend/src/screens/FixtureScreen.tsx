@@ -42,35 +42,39 @@ export function FixtureScreen() {
     return out;
   })();
 
-  return (
-    <Layout title="Fixture">
-      <div className="px-4 pt-3 pb-2">
-        <div className="rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">
-          <button
-            type="button"
-            onClick={() => canPrev && setRoundId(orderedRounds[idx - 1].id)}
-            disabled={!canPrev}
-            className="p-1 text-muted disabled:opacity-30"
-            aria-label="Ronda anterior"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <div className="text-sm font-bold text-ink truncate px-2">
-            {fixture.data?.round?.name ?? '—'}
-          </div>
-          <button
-            type="button"
-            onClick={() => canNext && setRoundId(orderedRounds[idx + 1].id)}
-            disabled={!canNext}
-            className="p-1 text-brand-orange disabled:opacity-30"
-            aria-label="Ronda siguiente"
-          >
-            <ChevronRight size={18} />
-          </button>
+  // Sticky region pinned below the orange app bar — keeps the round
+  // selector in view while the user scrolls through the fixture list.
+  const sticky = (
+    <div className="px-4 pt-3 pb-3 bg-surface-alt border-b">
+      <div className="rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">
+        <button
+          type="button"
+          onClick={() => canPrev && setRoundId(orderedRounds[idx - 1].id)}
+          disabled={!canPrev}
+          className="p-1 text-muted disabled:opacity-30 transition-transform active:scale-90"
+          aria-label="Ronda anterior"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <div className="text-sm font-bold text-ink truncate px-2">
+          {fixture.data?.round?.name ?? '—'}
         </div>
+        <button
+          type="button"
+          onClick={() => canNext && setRoundId(orderedRounds[idx + 1].id)}
+          disabled={!canNext}
+          className="p-1 text-brand-orange disabled:opacity-30 transition-transform active:scale-90"
+          aria-label="Ronda siguiente"
+        >
+          <ChevronRight size={18} />
+        </button>
       </div>
+    </div>
+  );
 
-      <div className="px-4 pb-6 pt-2 space-y-4">
+  return (
+    <Layout title="Fixture" stickyContent={sticky}>
+      <div className="px-4 pb-6 pt-3 space-y-4">
         {fixture.isLoading ? (
           <Card>
             <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>

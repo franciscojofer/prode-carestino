@@ -38,7 +38,7 @@ export function TabBar() {
           <NavLink
             key={to}
             to={to}
-            className={`flex flex-col items-center gap-1 py-2.5 transition-colors ${
+            className={`flex flex-col items-center gap-1 py-2.5 transition-all duration-150 active:scale-95 ${
               isActive ? 'text-brand-orange' : 'text-muted'
             }`}
           >
