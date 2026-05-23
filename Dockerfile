@@ -62,8 +62,12 @@ COPY docs/ ./docs/
 
 # Persistent data directory. Mount a volume here in production so the
 # SQLite database survives container restarts and image rebuilds.
-RUN mkdir -p /data && chown -R node:node /data /app
-USER node
+# Note: we deliberately keep the container running as root. Railway and
+# other PaaS mount the volume on /data at runtime with root ownership,
+# which overrides any build-time chown. Running as root avoids the
+# "unable to open database file" error without requiring an entrypoint
+# script that drops privileges.
+RUN mkdir -p /data
 
 WORKDIR /app/backend
 ENV NODE_ENV=production
