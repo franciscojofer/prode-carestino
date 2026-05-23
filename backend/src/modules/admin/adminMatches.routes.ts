@@ -15,6 +15,7 @@ import {
 import {
   listMatches,
   setMatchResult,
+  clearMatchResult,
   updateMatch,
   createMatch,
 } from './adminMatches.service';
@@ -44,6 +45,15 @@ export async function adminMatchesRoutes(app: FastifyInstance) {
     const input = matchResultSchema.parse(req.body);
     await setMatchResult(app.prisma, id, input);
     return { ok: true };
+  });
+
+  // DELETE /admin/matches/:id/result — clears a previously-loaded score,
+  // returns the match to "scheduled" and re-runs scoring so attached
+  // predictions go back to 0 points.
+  app.delete('/:id/result', async (req, reply) => {
+    const { id } = matchIdParamSchema.parse(req.params);
+    await clearMatchResult(app.prisma, id);
+    return reply.code(204).send();
   });
 
   // PATCH /admin/matches/:id — partial update of match metadata.

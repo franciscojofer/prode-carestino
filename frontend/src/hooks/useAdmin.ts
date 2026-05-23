@@ -131,6 +131,21 @@ export function useSetMatchResult() {
   });
 }
 
+// Wipes a previously-stored result so the admin can recover from a typo or
+// from posting a score for a match that didn't actually happen.
+export function useDeleteMatchResult() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (matchId: number) =>
+      apiFetch<void>(`/admin/matches/${matchId}/result`, { method: 'DELETE' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'matches'] });
+      qc.invalidateQueries({ queryKey: ['tournament'] });
+      qc.invalidateQueries({ queryKey: ['predictions'] });
+    },
+  });
+}
+
 export type PatchMatchBody = Partial<{
   scheduledAt: string;
   countsForRoundId: number;
@@ -150,5 +165,26 @@ export function usePatchMatch() {
       qc.invalidateQueries({ queryKey: ['tournament'] });
       qc.invalidateQueries({ queryKey: ['predictions'] });
     },
+  });
+}
+
+// ---------- Teams ----------------------------------------------------------
+
+export type AdminTeamRow = {
+  id: number;
+  nameEs: string;
+  code: string;
+  flagEmoji: string;
+  group: { name: string } | null;
+};
+
+// Full roster used by the playoff team-picker. Cached aggressively because
+// teams essentially never change after the seed.
+export function useAdminTeams() {
+  return useQuery({
+    queryKey: ['admin', 'teams'],
+    queryFn: () => apiFetch<{ teams: AdminTeamRow[] }>('/admin/teams'),
+    select: (d) => d.teams,
+    staleTime: 5 * 60 * 1000,
   });
 }

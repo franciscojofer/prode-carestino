@@ -1,0 +1,105 @@
+match_id,phase,group,date_arg,time_arg,home_team,away_team,city,timezone,status
+1,Group stage,A,2026-06-11,16:00,Mexico,South Africa,Mexico City,ART_UTC-3,scheduled
+2,Group stage,A,2026-06-11,23:00,South Korea,DEN/CZE,Guadalajara,ART_UTC-3,scheduled
+3,Group stage,B,2026-06-12,16:00,Canada,ITA/BIH,Toronto,ART_UTC-3,scheduled
+4,Group stage,D,2026-06-12,22:00,USA,Paraguay,Los Angeles,ART_UTC-3,scheduled
+5,Group stage,C,2026-06-13,22:00,Haiti,Scotland,Boston,ART_UTC-3,scheduled
+6,Group stage,D,2026-06-14,01:00,Australia,TUR/KOS,Vancouver,ART_UTC-3,scheduled
+7,Group stage,C,2026-06-13,19:00,Brazil,Morocco,New York,ART_UTC-3,scheduled
+8,Group stage,B,2026-06-13,16:00,Qatar,Switzerland,SF Bay Area,ART_UTC-3,scheduled
+9,Group stage,E,2026-06-14,20:00,Ivory Coast,Ecuador,Philadelphia,ART_UTC-3,scheduled
+10,Group stage,E,2026-06-14,14:00,Germany,Curacao,Houston,ART_UTC-3,scheduled
+11,Group stage,F,2026-06-14,17:00,Netherlands,Japan,Dallas,ART_UTC-3,scheduled
+12,Group stage,F,2026-06-14,23:00,SWE/POL,Tunisia,Monterrey,ART_UTC-3,scheduled
+13,Group stage,H,2026-06-15,19:00,Saudi Arabia,Uruguay,Miami,ART_UTC-3,scheduled
+14,Group stage,H,2026-06-15,13:00,Spain,Cape Verde,Atlanta,ART_UTC-3,scheduled
+15,Group stage,G,2026-06-15,22:00,Iran,New Zealand,Los Angeles,ART_UTC-3,scheduled
+16,Group stage,G,2026-06-15,16:00,Belgium,Egypt,Seattle,ART_UTC-3,scheduled
+17,Group stage,I,2026-06-16,16:00,France,Senegal,New York,ART_UTC-3,scheduled
+18,Group stage,I,2026-06-16,19:00,BOL/IRQ,Norway,Boston,ART_UTC-3,scheduled
+19,Group stage,J,2026-06-16,22:00,Argentina,Algeria,Kansas City,ART_UTC-3,scheduled
+20,Group stage,J,2026-06-17,01:00,Austria,Jordan,SF Bay Area,ART_UTC-3,scheduled
+21,Group stage,L,2026-06-17,20:00,Ghana,Panama,Toronto,ART_UTC-3,scheduled
+22,Group stage,L,2026-06-17,17:00,England,Croatia,Dallas,ART_UTC-3,scheduled
+23,Group stage,K,2026-06-17,14:00,Portugal,JAM/COD,Houston,ART_UTC-3,scheduled
+24,Group stage,K,2026-06-17,23:00,Uzbekistan,Colombia,Mexico City,ART_UTC-3,scheduled
+25,Group stage,A,2026-06-18,13:00,DEN/CZE,South Africa,Atlanta,ART_UTC-3,scheduled
+26,Group stage,B,2026-06-18,16:00,Switzerland,ITA/BIH,Los Angeles,ART_UTC-3,scheduled
+27,Group stage,B,2026-06-18,19:00,Canada,Qatar,Vancouver,ART_UTC-3,scheduled
+28,Group stage,A,2026-06-18,22:00,Mexico,South Korea,Guadalajara,ART_UTC-3,scheduled
+29,Group stage,C,2026-06-19,22:00,Brazil,Haiti,Philadelphia,ART_UTC-3,scheduled
+30,Group stage,C,2026-06-19,19:00,Scotland,Morocco,Boston,ART_UTC-3,scheduled
+31,Group stage,D,2026-06-20,01:00,TUR/KOS,Paraguay,SF Bay Area,ART_UTC-3,scheduled
+32,Group stage,D,2026-06-19,16:00,USA,Australia,Seattle,ART_UTC-3,scheduled
+33,Group stage,E,2026-06-20,17:00,Germany,Ivory Coast,Toronto,ART_UTC-3,scheduled
+34,Group stage,E,2026-06-20,21:00,Ecuador,Curacao,Kansas City,ART_UTC-3,scheduled
+35,Group stage,F,2026-06-20,14:00,Netherlands,SWE/POL,Houston,ART_UTC-3,scheduled
+36,Group stage,F,2026-06-21,01:00,Tunisia,Japan,Monterrey,ART_UTC-3,scheduled
+37,Group stage,H,2026-06-21,19:00,Uruguay,Cape Verde,Miami,ART_UTC-3,scheduled
+38,Group stage,H,2026-06-21,13:00,Spain,Saudi Arabia,Atlanta,ART_UTC-3,scheduled
+39,Group stage,G,2026-06-21,16:00,Belgium,Iran,Los Angeles,ART_UTC-3,scheduled
+40,Group stage,G,2026-06-21,22:00,New Zealand,Egypt,Vancouver,ART_UTC-3,scheduled
+41,Group stage,I,2026-06-22,21:00,Norway,Senegal,New York,ART_UTC-3,scheduled
+42,Group stage,I,2026-06-22,18:00,France,BOL/IRQ,Philadelphia,ART_UTC-3,scheduled
+43,Group stage,J,2026-06-22,14:00,Argentina,Austria,Dallas,ART_UTC-3,scheduled
+44,Group stage,J,2026-06-23,00:00,Jordan,Algeria,SF Bay Area,ART_UTC-3,scheduled
+45,Group stage,L,2026-06-23,17:00,England,Ghana,Boston,ART_UTC-3,scheduled
+46,Group stage,L,2026-06-23,20:00,Panama,Croatia,Toronto,ART_UTC-3,scheduled
+47,Group stage,K,2026-06-23,14:00,Portugal,Uzbekistan,Houston,ART_UTC-3,scheduled
+48,Group stage,K,2026-06-23,23:00,Colombia,JAM/COD,Guadalajara,ART_UTC-3,scheduled
+49,Group stage,C,2026-06-24,19:00,Scotland,Brazil,Miami,ART_UTC-3,scheduled
+50,Group stage,C,2026-06-24,19:00,Morocco,Haiti,Atlanta,ART_UTC-3,scheduled
+51,Group stage,B,2026-06-24,16:00,Switzerland,Canada,Vancouver,ART_UTC-3,scheduled
+52,Group stage,B,2026-06-24,16:00,ITA/BIH,Qatar,Seattle,ART_UTC-3,scheduled
+53,Group stage,A,2026-06-24,22:00,DEN/CZE,Mexico,Mexico City,ART_UTC-3,scheduled
+54,Group stage,A,2026-06-24,22:00,South Africa,South Korea,Monterrey,ART_UTC-3,scheduled
+55,Group stage,E,2026-06-25,17:00,Curacao,Ivory Coast,Philadelphia,ART_UTC-3,scheduled
+56,Group stage,E,2026-06-25,17:00,Ecuador,Germany,New York,ART_UTC-3,scheduled
+57,Group stage,F,2026-06-25,20:00,Japan,SWE/POL,Dallas,ART_UTC-3,scheduled
+58,Group stage,F,2026-06-25,20:00,Tunisia,Netherlands,Kansas City,ART_UTC-3,scheduled
+59,Group stage,D,2026-06-25,23:00,TUR/KOS,USA,Los Angeles,ART_UTC-3,scheduled
+60,Group stage,D,2026-06-25,23:00,Paraguay,Australia,SF Bay Area,ART_UTC-3,scheduled
+61,Group stage,I,2026-06-26,16:00,Norway,France,Boston,ART_UTC-3,scheduled
+62,Group stage,I,2026-06-26,16:00,Senegal,BOL/IRQ,Toronto,ART_UTC-3,scheduled
+63,Group stage,G,2026-06-27,00:00,Egypt,Iran,Seattle,ART_UTC-3,scheduled
+64,Group stage,G,2026-06-27,00:00,New Zealand,Belgium,Vancouver,ART_UTC-3,scheduled
+65,Group stage,H,2026-06-26,21:00,Cape Verde,Saudi Arabia,Houston,ART_UTC-3,scheduled
+66,Group stage,H,2026-06-26,21:00,Uruguay,Spain,Guadalajara,ART_UTC-3,scheduled
+67,Group stage,L,2026-06-27,18:00,Panama,England,New York,ART_UTC-3,scheduled
+68,Group stage,L,2026-06-27,18:00,Croatia,Ghana,Philadelphia,ART_UTC-3,scheduled
+69,Group stage,J,2026-06-27,23:00,Algeria,Austria,Kansas City,ART_UTC-3,scheduled
+70,Group stage,J,2026-06-27,23:00,Jordan,Argentina,Dallas,ART_UTC-3,scheduled
+71,Group stage,K,2026-06-27,20:30,Colombia,Portugal,Miami,ART_UTC-3,scheduled
+72,Group stage,K,2026-06-27,20:30,JAM/COD,Uzbekistan,Atlanta,ART_UTC-3,scheduled
+73,Round of 32,,2026-06-28,16:00,Runner-up Group A,Runner-up Group B,Los Angeles,ART_UTC-3,scheduled
+74,Round of 32,,2026-06-29,17:30,Winner Group E,3rd Group A/B/C/D/F,Boston,ART_UTC-3,scheduled
+75,Round of 32,,2026-06-29,22:00,Winner Group F,Runner-up Group C,Monterrey,ART_UTC-3,scheduled
+76,Round of 32,,2026-06-29,14:00,Winner Group C,Runner-up Group F,Houston,ART_UTC-3,scheduled
+77,Round of 32,,2026-06-30,18:00,Winner Group I,3rd Group C/D/F/G/H,New York,ART_UTC-3,scheduled
+78,Round of 32,,2026-06-30,14:00,Runner-up Group E,Runner-up Group I,Dallas,ART_UTC-3,scheduled
+79,Round of 32,,2026-06-30,22:00,Winner Group A,3rd Group C/E/F/H/I,Mexico City,ART_UTC-3,scheduled
+80,Round of 32,,2026-07-01,13:00,Winner Group L,3rd Group E/H/I/J/K,Atlanta,ART_UTC-3,scheduled
+81,Round of 32,,2026-07-01,21:00,Winner Group D,3rd Group B/E/F/I/J,SF Bay Area,ART_UTC-3,scheduled
+82,Round of 32,,2026-07-01,17:00,Winner Group G,3rd Group A/E/H/I/J,Seattle,ART_UTC-3,scheduled
+83,Round of 32,,2026-07-02,20:00,Runner-up Group K,Runner-up Group L,Toronto,ART_UTC-3,scheduled
+84,Round of 32,,2026-07-02,16:00,Winner Group H,Runner-up Group J,Los Angeles,ART_UTC-3,scheduled
+85,Round of 32,,2026-07-03,00:00,Winner Group B,3rd Group E/F/G/I/J,Vancouver,ART_UTC-3,scheduled
+86,Round of 32,,2026-07-03,19:00,Winner Group J,Runner-up Group H,Miami,ART_UTC-3,scheduled
+87,Round of 32,,2026-07-03,22:30,Winner Group K,3rd Group D/E/I/J/L,Kansas City,ART_UTC-3,scheduled
+88,Round of 32,,2026-07-03,15:00,Runner-up Group D,Runner-up Group G,Dallas,ART_UTC-3,scheduled
+89,Round of 16,,2026-07-04,18:00,Winner Match 74,Winner Match 77,Philadelphia,ART_UTC-3,scheduled
+90,Round of 16,,2026-07-04,14:00,Winner Match 73,Winner Match 75,Houston,ART_UTC-3,scheduled
+91,Round of 16,,2026-07-05,17:00,Winner Match 76,Winner Match 78,New York,ART_UTC-3,scheduled
+92,Round of 16,,2026-07-05,21:00,Winner Match 79,Winner Match 80,Mexico City,ART_UTC-3,scheduled
+93,Round of 16,,2026-07-06,16:00,Winner Match 83,Winner Match 84,Dallas,ART_UTC-3,scheduled
+94,Round of 16,,2026-07-06,21:00,Winner Match 81,Winner Match 82,Seattle,ART_UTC-3,scheduled
+95,Round of 16,,2026-07-07,13:00,Winner Match 86,Winner Match 88,Atlanta,ART_UTC-3,scheduled
+96,Round of 16,,2026-07-07,17:00,Winner Match 85,Winner Match 87,Vancouver,ART_UTC-3,scheduled
+97,Quarterfinals,,2026-07-09,17:00,Winner Match 89,Winner Match 90,Boston,ART_UTC-3,scheduled
+98,Quarterfinals,,2026-07-10,16:00,Winner Match 93,Winner Match 94,Los Angeles,ART_UTC-3,scheduled
+99,Quarterfinals,,2026-07-11,18:00,Winner Match 91,Winner Match 92,Miami,ART_UTC-3,scheduled
+100,Quarterfinals,,2026-07-11,22:00,Winner Match 95,Winner Match 96,Kansas City,ART_UTC-3,scheduled
+101,Semifinals,,2026-07-14,16:00,Winner Match 97,Winner Match 98,Dallas,ART_UTC-3,scheduled
+102,Semifinals,,2026-07-15,16:00,Winner Match 99,Winner Match 100,Atlanta,ART_UTC-3,scheduled
+103,Third place,,2026-07-18,18:00,Loser Match 101,Loser Match 102,Miami,ART_UTC-3,scheduled
+104,Final,,2026-07-19,16:00,Winner Match 101,Winner Match 102,New York,ART_UTC-3,scheduled

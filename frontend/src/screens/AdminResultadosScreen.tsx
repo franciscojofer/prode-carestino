@@ -18,8 +18,12 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { useRounds, useCurrentRound } from '../hooks/useTournament';
 import {
   useAdminMatches,
+  useAdminTeams,
+  useDeleteMatchResult,
+  usePatchMatch,
   useSetMatchResult,
   type AdminMatchRow,
+  type AdminTeamRow,
 } from '../hooks/useAdmin';
 import { formatShortDate, formatTime } from '../lib/dateFormat';
 import { ApiError } from '../lib/apiClient';
@@ -131,6 +135,7 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
   );
   const [error, setError] = useState<string | null>(null);
   const setResult = useSetMatchResult();
+  const deleteResult = useDeleteMatchResult();
 
   // When the cached row updates after a save, refresh the locally edited
   // values unless we're still mid-mutation.
@@ -167,6 +172,30 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
     }
   }
 
+  // Wipes the stored score when the admin cleared both inputs on a match
+  // that was previously marked finished — typically because the result was
+  // loaded by mistake or for a match that never happened.
+  async function handleDelete() {
+    if (
+      !confirm(
+        '¿Eliminar el resultado de este partido? Las predicciones quedarán en 0 puntos hasta que cargues uno nuevo.',
+      )
+    )
+      return;
+    setError(null);
+    try {
+      await deleteResult.mutateAsync(match.id);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'No pudimos eliminar el resultado.');
+    }
+  }
+
+  // A match is "pending team assignment" when it was created with the TBD
+  // placeholder (rounds of 32, R16, etc., before the previous round resolves).
+  const isPlayoffPending =
+    match.placeholderLabel !== null &&
+    (match.homeTeam.code === 'TBD' || match.awayTeam.code === 'TBD');
+
   return (
     <Card className="p-3">
       <div className="flex items-center justify-between text-[10px] font-bold tracking-wider mb-2">
@@ -176,6 +205,9 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
         </span>
         <StatusPill status={match.status} />
       </div>
+
+      {isPlayoffPending && <PlayoffPicker match={match} />}
+
       <div
         className="grid items-center gap-2"
         style={{ gridTemplateColumns: '1fr auto auto 1fr' }}
@@ -236,6 +268,22 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
                 ? 'ACTUALIZAR RESULTADO'
                 : 'GUARDAR RESULTADO'}
           </Button>
+        </div>
+      )}
+
+      {/* Wipe button: visible when the match has a stored result but the
+          admin cleared the inputs. Lets them undo a wrongly-loaded score
+          (or a result for a match that didn't happen). */}
+      {isFinished && !bothFilled && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleteResult.isPending}
+            className="w-full rounded-lg border border-danger px-3 py-2 text-xs font-bold tracking-wider text-danger disabled:opacity-50"
+          >
+            {deleteResult.isPending ? 'ELIMINANDO…' : 'ELIMINAR RESULTADO'}
+          </button>
         </div>
       )}
     </Card>
@@ -313,6 +361,141 @@ function PenaltyChoice({ label, flag, checked, onSelect }: PenaltyChoiceProps) {
       <span className="text-base leading-none">{flag}</span>
       <span className="truncate">{label}</span>
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Playoff picker: shown for knockout matches whose pairings haven't been
+// resolved yet (both teams still pointing at the TBD placeholder). The admin
+// picks the real home / away teams once the previous round closes; the same
+// component re-uses already-set values so it doubles as a "change teams"
+// flow until the match is played.
+// ---------------------------------------------------------------------------
+
+type PlayoffPickerProps = { match: AdminMatchRow };
+function PlayoffPicker({ match }: PlayoffPickerProps) {
+  const teams = useAdminTeams();
+  const patch = usePatchMatch();
+  const [error, setError] = useState<string | null>(null);
+
+  // Initial values: only pre-fill when the side is already assigned (not
+  // TBD). That way the user has to make an explicit choice for slots that
+  // haven't been resolved yet.
+  const initialHome = match.homeTeam.code === 'TBD' ? '' : String(match.homeTeam.id);
+  const initialAway = match.awayTeam.code === 'TBD' ? '' : String(match.awayTeam.id);
+  const [homeId, setHomeId] = useState<string>(initialHome);
+  const [awayId, setAwayId] = useState<string>(initialAway);
+
+  // Group teams by group letter for an `<optgroup>` layout (48 unsorted
+  // options is unusable on mobile).
+  const grouped = (teams.data ?? [])
+    .filter((t) => t.code !== 'TBD')
+    .reduce<Record<string, AdminTeamRow[]>>((acc, t) => {
+      const key = t.group?.name ?? '—';
+      (acc[key] ??= []).push(t);
+      return acc;
+    }, {});
+  const groupKeys = Object.keys(grouped).sort();
+
+  const canSave =
+    homeId !== '' &&
+    awayId !== '' &&
+    homeId !== awayId &&
+    (homeId !== initialHome || awayId !== initialAway);
+
+  async function handleSave() {
+    if (!canSave) return;
+    setError(null);
+    try {
+      await patch.mutateAsync({
+        matchId: match.id,
+        homeTeamId: Number(homeId),
+        awayTeamId: Number(awayId),
+      });
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'No pudimos asignar los equipos.');
+    }
+  }
+
+  return (
+    <div className="mb-3 p-2 rounded-lg bg-surface-alt border">
+      <div className="text-[10px] font-bold tracking-wider text-brand-navy mb-1.5">
+        ASIGNAR EQUIPOS
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <TeamSelect
+          value={homeId}
+          onChange={setHomeId}
+          groups={groupKeys}
+          teamsByGroup={grouped}
+          ariaLabel="Equipo local"
+          placeholder="Local"
+        />
+        <TeamSelect
+          value={awayId}
+          onChange={setAwayId}
+          groups={groupKeys}
+          teamsByGroup={grouped}
+          ariaLabel="Equipo visitante"
+          placeholder="Visitante"
+        />
+      </div>
+      {homeId !== '' && homeId === awayId && (
+        <div className="mt-2 text-[11px] font-semibold text-danger">
+          Local y visitante no pueden ser el mismo equipo.
+        </div>
+      )}
+      {error && (
+        <div className="mt-2 text-[11px] font-semibold text-danger">{error}</div>
+      )}
+      <div className="mt-2">
+        <Button
+          size="sm"
+          fullWidth
+          disabled={!canSave || patch.isPending}
+          onClick={handleSave}
+        >
+          {patch.isPending ? 'GUARDANDO…' : 'GUARDAR EQUIPOS'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type TeamSelectProps = {
+  value: string;
+  onChange: (v: string) => void;
+  groups: string[];
+  teamsByGroup: Record<string, AdminTeamRow[]>;
+  ariaLabel: string;
+  placeholder: string;
+};
+function TeamSelect({
+  value,
+  onChange,
+  groups,
+  teamsByGroup,
+  ariaLabel,
+  placeholder,
+}: TeamSelectProps) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
+      className="w-full rounded-md border bg-surface px-2 py-1.5 text-xs font-semibold text-ink"
+    >
+      <option value="">{placeholder}…</option>
+      {groups.map((g) => (
+        <optgroup key={g} label={`Grupo ${g}`}>
+          {teamsByGroup[g].map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.flagEmoji} {t.nameEs}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
   );
 }
 

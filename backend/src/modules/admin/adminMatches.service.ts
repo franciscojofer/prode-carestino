@@ -139,6 +139,36 @@ export async function setMatchResult(
   await applyPredictionScoring(prisma, matchId);
 }
 
+// Clears a previously-stored match result: nulls out the score and the
+// shootout winner, reverts the status to "scheduled", and re-runs the
+// scoring engine so every attached prediction goes back to 0 points.
+// Used when the admin entered a result for a match that hadn't actually
+// happened (or wants to wipe a wrong score before re-entering it).
+// Inputs: prisma client, match id.
+// Output: none. Side effects: updates `Match`, mass-updates `Prediction`.
+// Throws: `NotFoundError` if the match doesn't exist.
+export async function clearMatchResult(
+  prisma: Prisma,
+  matchId: number,
+): Promise<void> {
+  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  if (!match) throw new NotFoundError('El partido no existe');
+
+  await prisma.match.update({
+    where: { id: matchId },
+    data: {
+      homeGoals: null,
+      awayGoals: null,
+      winnerByPenaltiesTeamId: null,
+      status: 'scheduled',
+    },
+  });
+
+  // Re-runs the scoring engine: with both goals null, every prediction
+  // attached to this match is reset to 0 points and `isExact = false`.
+  await applyPredictionScoring(prisma, matchId);
+}
+
 // Updates match metadata: reschedule, change the round that counts the
 // match for the leaderboard (rule 4.5), change status or toggle the
 // administrative-resolution flag (rule 4.6).
