@@ -30,7 +30,7 @@ const MATCHES_CSV = resolve(process.cwd(), '..', 'docs', 'matches.csv');
 const EXPECTED_MATCH_COUNT = 104;
 
 // Argentina has no daylight saving — UTC-3 year-round.
-const ART_OFFSET = '-03:00';
+const ART_OFFSET = '-00:00';
 
 // Minimal CSV parser shared with `seed.ts`. Strips the UTF-8 BOM that
 // Excel sometimes prepends so the first header isn't mis-parsed.
@@ -109,7 +109,7 @@ async function assertDbMatchesSeedOrder(): Promise<void> {
   if (count !== EXPECTED_MATCH_COUNT) {
     throw new Error(
       `La base tiene ${count} partidos, esperábamos ${EXPECTED_MATCH_COUNT}. ` +
-        `Asegurate de correr este script solo después de un seed limpio.`,
+      `Asegurate de correr este script solo después de un seed limpio.`,
     );
   }
 
@@ -120,7 +120,7 @@ async function assertDbMatchesSeedOrder(): Promise<void> {
     // eslint-disable-next-line no-console
     console.warn(
       'No se encontró docs/matches.csv para validar IDs; ' +
-        'continuando confiando en el orden del seed.',
+      'continuando confiando en el orden del seed.',
     );
     return;
   }
@@ -148,9 +148,9 @@ async function assertDbMatchesSeedOrder(): Promise<void> {
     ) {
       throw new Error(
         `Validación falló en match ${matchNumber}: ` +
-          `DB tiene equipos (${dbMatch.homeTeamId}, ${dbMatch.awayTeamId}) ` +
-          `pero matches.csv dice (${expectedHome}, ${expectedAway}). ` +
-          `Los IDs no coinciden con el orden del seed.`,
+        `DB tiene equipos (${dbMatch.homeTeamId}, ${dbMatch.awayTeamId}) ` +
+        `pero matches.csv dice (${expectedHome}, ${expectedAway}). ` +
+        `Los IDs no coinciden con el orden del seed.`,
       );
     }
   }
