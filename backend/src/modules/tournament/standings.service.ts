@@ -7,6 +7,20 @@
 // Role: Backs the `/api/tournament/standings` endpoint.
 
 import type { Prisma } from '../../lib/db';
+import { cached, invalidate } from '../../lib/cache';
+
+// Cache key + TTL for the global leaderboard. Five seconds is short
+// enough that a freshly-posted result becomes visible almost immediately,
+// yet long enough to collapse the 150-user post-match burst into a single
+// underlying query.
+const STANDINGS_CACHE_KEY = 'tournament:standings';
+const STANDINGS_TTL_MS = 5_000;
+
+// Called by admin write paths (set/clear/update match result) so the next
+// /standings request rebuilds the leaderboard instead of serving stale data.
+export function invalidateStandingsCache(): void {
+  invalidate(STANDINGS_CACHE_KEY);
+}
 
 export type StandingsRow = {
   position: number;
@@ -50,8 +64,17 @@ function assignPositions(rows: RawRow[]): StandingsRow[] {
 
 // Computes the leaderboard for every active user.
 // Inputs: prisma client. Output: rows sorted and ranked.
-// Side effects: read-only.
-export async function getStandings(prisma: Prisma): Promise<StandingsRow[]> {
+// Side effects: read-only. Memoized in process memory for STANDINGS_TTL_MS
+// to absorb the post-match traffic spike — admin write paths must call
+// `invalidateStandingsCache()` to publish fresh numbers immediately.
+export function getStandings(prisma: Prisma): Promise<StandingsRow[]> {
+  return cached(STANDINGS_CACHE_KEY, STANDINGS_TTL_MS, () =>
+    computeStandings(prisma),
+  );
+}
+
+// Pure computation extracted so the cached wrapper above stays trivial.
+async function computeStandings(prisma: Prisma): Promise<StandingsRow[]> {
   const users = await prisma.user.findMany({
     where: { isActive: true, isAdmin: false },
     select: {

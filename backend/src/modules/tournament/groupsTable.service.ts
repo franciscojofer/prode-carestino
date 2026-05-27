@@ -6,6 +6,18 @@
 // frontend's groups screen.
 
 import type { Prisma } from '../../lib/db';
+import { cached, invalidate } from '../../lib/cache';
+
+// Cache key + TTL for the group-stage table. Same TTL as standings so the
+// post-match burst is absorbed by a single underlying query.
+const GROUPS_CACHE_KEY = 'tournament:groups';
+const GROUPS_TTL_MS = 5_000;
+
+// Called by admin write paths whenever a group-stage score may have
+// changed so the next /groups request rebuilds the table.
+export function invalidateGroupsCache(): void {
+  invalidate(GROUPS_CACHE_KEY);
+}
 
 // Per-team line in the group table.
 export type GroupTeamRow = {
@@ -32,8 +44,16 @@ export type GroupTable = {
 // Builds the live table for every group.
 // Inputs: prisma client. Output: groups in alphabetical order, each with
 // teams sorted by FIFA-style tie-breakers (pts → goal diff → goals for →
-// name). Side effects: read-only.
-export async function getGroupsTable(prisma: Prisma): Promise<GroupTable[]> {
+// name). Side effects: read-only. Memoized for GROUPS_TTL_MS — admin
+// write paths must call `invalidateGroupsCache()` to refresh immediately.
+export function getGroupsTable(prisma: Prisma): Promise<GroupTable[]> {
+  return cached(GROUPS_CACHE_KEY, GROUPS_TTL_MS, () =>
+    computeGroupsTable(prisma),
+  );
+}
+
+// Pure computation extracted so the cached wrapper above stays trivial.
+async function computeGroupsTable(prisma: Prisma): Promise<GroupTable[]> {
   const groups = await prisma.group.findMany({
     orderBy: { name: 'asc' },
     include: { teams: true },

@@ -10,11 +10,21 @@
 import type { Prisma } from '../../lib/db';
 import { NotFoundError, ValidationError } from '../../lib/errors';
 import { applyPredictionScoring } from '../scoring/scoring';
+import { invalidateStandingsCache } from '../tournament/standings.service';
+import { invalidateGroupsCache } from '../tournament/groupsTable.service';
 import type {
   MatchResultInput,
   UpdateMatchInput,
   CreateMatchInput,
 } from './adminMatches.schemas';
+
+// Drops every cached read derived from match/result data so the next
+// public request sees the freshly-written values without waiting for the
+// TTL. Called by every admin write path that touches a match.
+function invalidateMatchDerivedCaches(): void {
+  invalidateStandingsCache();
+  invalidateGroupsCache();
+}
 
 // Common select used by `listMatches` so the row shape stays consistent.
 const matchSelect = {
@@ -137,6 +147,7 @@ export async function setMatchResult(
   });
 
   await applyPredictionScoring(prisma, matchId);
+  invalidateMatchDerivedCaches();
 }
 
 // Clears a previously-stored match result: nulls out the score and the
@@ -167,6 +178,7 @@ export async function clearMatchResult(
   // Re-runs the scoring engine: with both goals null, every prediction
   // attached to this match is reset to 0 points and `isExact = false`.
   await applyPredictionScoring(prisma, matchId);
+  invalidateMatchDerivedCaches();
 }
 
 // Updates match metadata: reschedule, change the round that counts the
@@ -235,4 +247,6 @@ export async function updateMatch(
   ) {
     await applyPredictionScoring(prisma, matchId);
   }
+
+  invalidateMatchDerivedCaches();
 }

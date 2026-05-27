@@ -12,6 +12,21 @@ import { getGroupsTable } from './groupsTable.service';
 import { getStandings } from './standings.service';
 import { isLockedForPredictions } from '../predictions/predictions.guards';
 import { NotFoundError } from '../../lib/errors';
+import { cached, invalidate } from '../../lib/cache';
+
+// Cache keys + TTLs for the small, near-immutable read endpoints. Rounds
+// and the active round only change when the admin edits them, so a longer
+// TTL is safe. Both are dropped explicitly by the admin write paths.
+const ROUNDS_CACHE_KEY = 'tournament:rounds';
+const ROUNDS_TTL_MS = 30_000;
+const CURRENT_ROUND_CACHE_KEY = 'tournament:current-round';
+const CURRENT_ROUND_TTL_MS = 10_000;
+
+// Exposed for the admin write paths so they can publish edits immediately.
+export function invalidateRoundsCache(): void {
+  invalidate(ROUNDS_CACHE_KEY);
+  invalidate(CURRENT_ROUND_CACHE_KEY);
+}
 
 // Query params for the fixture endpoint.
 const fixtureQuerySchema = z.object({
@@ -21,23 +36,27 @@ const fixtureQuerySchema = z.object({
 export async function tournamentRoutes(app: FastifyInstance) {
   // GET /current-round — the round predictions are currently open for.
   app.get('/current-round', { onRequest: [app.requireAuth] }, async () => {
-    const round = await getActiveRound(app.prisma);
+    const round = await cached(CURRENT_ROUND_CACHE_KEY, CURRENT_ROUND_TTL_MS, () =>
+      getActiveRound(app.prisma),
+    );
     return { round };
   });
 
   // GET /rounds — ordered list of every round in the tournament.
   app.get('/rounds', { onRequest: [app.requireAuth] }, async () => {
-    const rounds = await app.prisma.tournamentRound.findMany({
-      orderBy: { orderIndex: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        orderIndex: true,
-        startsAt: true,
-        endsAt: true,
-        isKnockout: true,
-      },
-    });
+    const rounds = await cached(ROUNDS_CACHE_KEY, ROUNDS_TTL_MS, () =>
+      app.prisma.tournamentRound.findMany({
+        orderBy: { orderIndex: 'asc' },
+        select: {
+          id: true,
+          name: true,
+          orderIndex: true,
+          startsAt: true,
+          endsAt: true,
+          isKnockout: true,
+        },
+      }),
+    );
     return { rounds };
   });
 
