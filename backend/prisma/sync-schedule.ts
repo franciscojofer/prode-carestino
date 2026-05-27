@@ -30,7 +30,7 @@ const MATCHES_CSV = resolve(process.cwd(), '..', 'docs', 'matches.csv');
 const EXPECTED_MATCH_COUNT = 104;
 
 // Argentina has no daylight saving — UTC-3 year-round.
-const ART_OFFSET = '-00:00';
+const ART_OFFSET = '-03:00';
 
 // Minimal CSV parser shared with `seed.ts`. Strips the UTF-8 BOM that
 // Excel sometimes prepends so the first header isn't mis-parsed.
