@@ -51,7 +51,7 @@ const RULES: Rule[] = [
   {
     title: '8. Tabla de posiciones',
     body:
-      'Se ordena por puntos de mayor a menor. Cada participante tiene una posición única (no se comparten puestos). En caso de empate en puntaje, se desempata por:\n1) Mayor cantidad de resultados exactos.\n2) Mayor cantidad de aciertos con diferencia de gol (predicciones de 5 o 7 puntos).\n3) Mayor cantidad de goles del equipo ganador en los partidos donde se acertó el ganador.\n4) Orden alfabético por nombre.',
+      'Se ordena por puntos de mayor a menor. Cada participante tiene una posición única (no se comparten puestos). En caso de empate en puntaje, se desempata por:\n1) Mayor cantidad de resultados exactos.\n2) Mayor cantidad de aciertos con diferencia de gol (predicciones de 5 o 7 puntos).\n3) Mayor cantidad de goles del equipo ganador en los partidos donde se acertó el ganador.',
   },
   {
     title: '9. Premios por equipo',
