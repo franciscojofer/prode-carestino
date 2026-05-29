@@ -189,17 +189,16 @@ function StandingsTable({ rows, currentUserId }: StandingsTableProps) {
       <div className="grid grid-cols-12 px-3 py-2.5 text-[10px] font-bold tracking-wider text-muted bg-surface-alt">
         <div className="col-span-1">#</div>
         <div className="col-span-7">PARTICIPANTE</div>
-        <div className="col-span-2 text-right">EX.</div>
-        <div className="col-span-2 text-right">PTS</div>
+        <div className="col-span-2 text-right">ACIERTOS</div>
+        <div className="col-span-2 text-right">PUNTOS</div>
       </div>
       {rows.map((row, i) => {
         const isMe = row.userId === currentUserId;
         return (
           <div
             key={row.userId}
-            className={`grid grid-cols-12 px-3 py-3 text-sm items-center ${
-              isMe ? 'bg-brand-orange-soft text-brand-orange font-bold' : 'text-ink font-medium'
-            } ${i === 0 ? '' : 'border-t'}`}
+            className={`grid grid-cols-12 px-3 py-3 text-sm items-center ${isMe ? 'bg-brand-orange-soft text-brand-orange font-bold' : 'text-ink font-medium'
+              } ${i === 0 ? '' : 'border-t'}`}
           >
             <div className="col-span-1 font-bold">{row.position}</div>
             <div className="col-span-7 truncate">{row.name}</div>
@@ -337,16 +336,14 @@ function TeamStandingsTable({ rows }: TeamStandingsTableProps) {
       <div className="grid grid-cols-12 px-3 py-2.5 text-[10px] font-bold tracking-wider text-muted bg-surface-alt">
         <div className="col-span-1">#</div>
         <div className="col-span-5">EQUIPO</div>
-        <div className="col-span-2 text-right">INT.</div>
-        <div className="col-span-2 text-right">PTS</div>
-        <div className="col-span-2 text-right">PROM.</div>
+        <div className="col-span-2 text-right">PUNTOS</div>
+        <div className="col-span-2 text-right">PROMEDIO</div>
       </div>
       {rows.map((row, i) => (
         <div
           key={row.equipo}
-          className={`grid grid-cols-12 px-3 py-3 text-sm items-center text-ink font-medium ${
-            i === 0 ? '' : 'border-t'
-          }`}
+          className={`grid grid-cols-12 px-3 py-3 text-sm items-center text-ink font-medium ${i === 0 ? '' : 'border-t'
+            }`}
         >
           <div className="col-span-1 font-bold">{row.position}</div>
           <div className="col-span-5 uppercase truncate">{row.equipo}</div>
