@@ -1,15 +1,14 @@
 // File: backend/src/modules/predictions/predictions.guards.test.ts
 // Purpose: Unit tests for the prediction guards.
-// Functionality: Covers the 15-min lock boundary (above, at, and below) and
-// the knockout no-draw validator with the exact error message required by
-// the spec.
+// Functionality: Covers the 15-min lock boundary (above, at, and below).
+// The knockout-no-draw guard was removed when rule 4 was updated to
+// permit draws in playoffs.
 // Role: Required by section 10 of the product spec.
 
 import { describe, it, expect } from 'vitest';
 import {
   isLockedForPredictions,
   assertPredictionEditable,
-  assertKnockoutNotDraw,
   LOCK_WINDOW_MINUTES,
 } from './predictions.guards';
 import { ValidationError } from '../../lib/errors';
@@ -65,33 +64,5 @@ describe('assertPredictionEditable', () => {
     } catch (err) {
       expect((err as Error).message).toContain('15 minutos antes');
     }
-  });
-});
-
-describe('assertKnockoutNotDraw', () => {
-  it('throws on a draw in a knockout match', () => {
-    expect(() => assertKnockoutNotDraw(0, 0, true)).toThrow(ValidationError);
-    expect(() => assertKnockoutNotDraw(1, 1, true)).toThrow(ValidationError);
-    expect(() => assertKnockoutNotDraw(3, 3, true)).toThrow(ValidationError);
-  });
-
-  it('uses the exact message required by the spec', () => {
-    try {
-      assertKnockoutNotDraw(0, 0, true);
-    } catch (err) {
-      expect((err as Error).message).toBe(
-        'No se permite predecir empate en eliminatorias. Ingresá un ganador y un perdedor.',
-      );
-    }
-  });
-
-  it('does not throw on a non-draw in a knockout match', () => {
-    expect(() => assertKnockoutNotDraw(2, 1, true)).not.toThrow();
-    expect(() => assertKnockoutNotDraw(0, 3, true)).not.toThrow();
-  });
-
-  it('allows draws in group-stage matches', () => {
-    expect(() => assertKnockoutNotDraw(0, 0, false)).not.toThrow();
-    expect(() => assertKnockoutNotDraw(2, 2, false)).not.toThrow();
   });
 });

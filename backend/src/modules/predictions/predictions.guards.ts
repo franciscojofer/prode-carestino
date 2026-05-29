@@ -1,8 +1,9 @@
 // File: backend/src/modules/predictions/predictions.guards.ts
 // Purpose: Pure validation helpers shared by the predictions service and
 // route handlers.
-// Functionality: Computes the 15-minute pre-kickoff lock window (rule 4.2)
-// and rejects draw predictions in knockout matches (rule 4.3).
+// Functionality: Computes the 15-minute pre-kickoff lock window (rule 4.2).
+// Draws are now permitted in every match, including knockouts (rule 4 —
+// updated), so the previous knockout-no-draw guard was removed.
 // Role: Imported by `predictions.service.ts` for write-time checks and by
 // `predictions.routes.ts` to inform the frontend whether each match is
 // editable. Pure, fully unit-testable.
@@ -29,23 +30,6 @@ export function assertPredictionEditable(scheduledAt: Date, now: Date = new Date
   if (isLockedForPredictions(scheduledAt, now)) {
     throw new ValidationError(
       'Las predicciones se cierran 15 minutos antes del partido.',
-    );
-  }
-}
-
-// Throws a ValidationError when the prediction is a draw in a knockout
-// match (rule 4.3). The error message matches the exact text required by
-// the spec so the frontend can show it verbatim.
-// Inputs: predicted goals and whether the match is a knockout.
-// Side effects: may throw.
-export function assertKnockoutNotDraw(
-  homeGoals: number,
-  awayGoals: number,
-  isKnockout: boolean,
-): void {
-  if (isKnockout && homeGoals === awayGoals) {
-    throw new ValidationError(
-      'No se permite predecir empate en eliminatorias. Ingresá un ganador y un perdedor.',
     );
   }
 }

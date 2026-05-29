@@ -1,8 +1,9 @@
 // File: frontend/src/hooks/useAuth.ts
 // Purpose: Single source of truth for the authenticated user.
 // Functionality: Wraps a `useQuery` on `/api/auth/me` (returns the user or
-// null on 401) and exposes `login`, `register` and `logout` mutations that
-// keep the cached user in sync.
+// null on 401) and exposes `login` and `logout` mutations that keep the
+// cached user in sync. Public registration was removed once the payroll
+// seed became the canonical source of accounts.
 // Role: Any component that needs to know "who am I?" calls `useAuth()`.
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -50,20 +51,6 @@ export function useAuth() {
     },
   });
 
-  const register = useMutation({
-    mutationFn: (input: {
-      nombre: string;
-      apellido: string;
-      cuil: string;
-      email: string;
-      password: string;
-      passwordConfirm: string;
-    }) => apiFetch<{ user: AuthUser }>('/auth/register', { method: 'POST', body: input }),
-    onSuccess: (data) => {
-      queryClient.setQueryData(AUTH_ME_KEY, data.user);
-    },
-  });
-
   const logout = useMutation({
     mutationFn: () => apiFetch<void>('/auth/logout', { method: 'POST' }),
     onSuccess: () => {
@@ -78,7 +65,6 @@ export function useAuth() {
     isLoading: query.isLoading,
     error: query.error,
     login,
-    register,
     logout,
   };
 }

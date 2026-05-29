@@ -3,9 +3,8 @@
 // Functionality: Defaults to the round currently open for editing, lets
 // the user navigate between rounds with chevrons, shows a progress
 // indicator (X/Y predictions filled) and renders one PredictionCard per
-// match. Each card auto-saves on blur when both score fields are filled
-// and the knockout no-draw rule is satisfied; otherwise the inline error
-// matches the exact spec wording.
+// match. Each card auto-saves on blur when both score fields are filled.
+// Draws are accepted in every match (knockouts included) per rule 4.
 // Role: Bound to /predicciones behind ProtectedRoute.
 
 import { useEffect, useState } from 'react';
@@ -21,9 +20,6 @@ import {
 import { useRounds } from '../hooks/useTournament';
 import { formatShortDate, formatTime } from '../lib/dateFormat';
 import { ApiError } from '../lib/apiClient';
-
-const KNOCKOUT_DRAW_MESSAGE =
-  'No se permite predecir empate en eliminatorias. Ingresá un ganador y un perdedor.';
 
 export function PrediccionesScreen() {
   const current = useCurrentPredictions();
@@ -182,33 +178,19 @@ function PredictionCard({ match, index }: PredictionCardProps) {
   // mockup's 11×11 px chips.
   const sanitize = (v: string) => v.replace(/\D/g, '').slice(0, 2);
 
-  // Validates the current pair against the knockout-no-draw rule. Returns
-  // either a Spanish error message or null when both values are valid.
-  function validate(h: string, a: string): string | null {
-    if (h === '' || a === '') return null;
-    if (match.isKnockout && Number(h) === Number(a)) return KNOCKOUT_DRAW_MESSAGE;
-    return null;
-  }
-
   function handleChange(side: 'home' | 'away', raw: string) {
     const v = sanitize(raw);
-    const next = side === 'home' ? { h: v, a: away } : { h: home, a: v };
     if (side === 'home') setHome(v);
     else setAway(v);
-    setError(validate(next.h, next.a));
+    setError(null);
   }
 
-  // On blur, persist when both inputs are full and the pair is valid.
-  // The "lock" guard is handled by the backend too — duplicate validation
-  // is intentional so the user never hits an avoidable 400.
+  // On blur, persist when both inputs are full. The "lock" guard is also
+  // handled by the backend — duplicate validation is intentional so the
+  // user never hits an avoidable 400.
   function maybeSave() {
     if (match.isLocked) return;
     if (home === '' || away === '') return;
-    const validationError = validate(home, away);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
     // Skip the call when the pair already matches what's saved.
     if (
       match.prediction &&

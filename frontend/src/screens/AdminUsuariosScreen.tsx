@@ -56,10 +56,10 @@ export function AdminUsuariosScreen() {
   const data = users.data ?? [];
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-alt">
+    <div className="flex flex-col h-dvh overflow-hidden bg-surface-alt">
       <Header title="Panel Admin" showBack onBack={() => navigate('/mas')} adminBadge />
 
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-3 pb-2 shrink-0">
         <SegmentedControl
           value="users"
           onChange={(v) => v === 'results' && navigate('/admin/resultados')}
@@ -86,7 +86,7 @@ export function AdminUsuariosScreen() {
         />
       </div>
 
-      <div className="px-4 mb-2 mt-2 flex items-center justify-between">
+      <div className="px-4 mb-2 mt-2 shrink-0 flex items-center justify-between">
         <span className="text-[11px] font-bold tracking-wider text-muted">
           {data.length} USUARIOS
         </span>
@@ -96,7 +96,7 @@ export function AdminUsuariosScreen() {
         </Button>
       </div>
 
-      <main className="flex-1 overflow-y-auto px-4 pb-4">
+      <main className="flex-1 overflow-y-auto overscroll-y-contain px-4 pb-4">
         {users.isLoading ? (
           <Card>
             <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
@@ -170,6 +170,11 @@ function UserRow({ user, isFirst, isMe, onAdminToggle, onEdit, onDelete }: UserR
           </div>
           <div className="text-[11px] truncate text-muted">{user.email}</div>
           <div className="text-[11px] text-muted">CUIL: {user.cuil}</div>
+          {user.equipo && (
+            <div className="mt-1 inline-block rounded-full bg-brand-orange-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-orange">
+              {user.equipo}
+            </div>
+          )}
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-1">
@@ -223,6 +228,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
       cuil: '',
       email: '',
       password: '',
+      equipo: '',
       isAdmin: false,
     },
   });
@@ -273,6 +279,13 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
           error={form.formState.errors.password?.message}
           {...form.register('password')}
         />
+        <Field
+          label="Equipo"
+          placeholder="bi / compras / ssgg…"
+          helper="Usado para los premios por equipo. Opcional."
+          error={form.formState.errors.equipo?.message}
+          {...form.register('equipo')}
+        />
         <label className="flex items-center justify-between py-1">
           <span className="text-[11px] font-bold tracking-wider uppercase text-brand-navy">
             Es administrador
@@ -317,6 +330,7 @@ function EditUserModal({ user, onClose }: { user: AdminUserRow; onClose: () => v
     cuil: user.cuil,
     email: user.email,
     password: '',
+    equipo: user.equipo ?? '',
     isAdmin: user.isAdmin,
     isActive: user.isActive,
   };
@@ -336,6 +350,10 @@ function EditUserModal({ user, onClose }: { user: AdminUserRow; onClose: () => v
     if (values.cuil !== user.cuil) payload.cuil = values.cuil;
     if (values.email !== user.email) payload.email = values.email;
     if (values.password && values.password.length > 0) payload.password = values.password;
+    // Compare equipo against the original, treating "" and null as equivalent.
+    const currentEquipo = user.equipo ?? '';
+    const nextEquipo = values.equipo ?? '';
+    if (nextEquipo !== currentEquipo) payload.equipo = nextEquipo;
     if (values.isAdmin !== user.isAdmin) payload.isAdmin = values.isAdmin;
     if (values.isActive !== user.isActive) payload.isActive = values.isActive;
 
@@ -384,6 +402,13 @@ function EditUserModal({ user, onClose }: { user: AdminUserRow; onClose: () => v
           helper="Sólo completar si querés resetear la contraseña."
           error={form.formState.errors.password?.message}
           {...form.register('password')}
+        />
+        <Field
+          label="Equipo"
+          placeholder="bi / compras / ssgg…"
+          helper="Vacío = sin equipo asignado."
+          error={form.formState.errors.equipo?.message}
+          {...form.register('equipo')}
         />
 
         <label className="flex items-center justify-between py-1">

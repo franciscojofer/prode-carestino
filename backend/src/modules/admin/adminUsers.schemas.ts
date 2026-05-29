@@ -32,12 +32,22 @@ const cuilField = z
   .pipe(z.string().regex(/^\d{11}$/, 'CUIL debe tener 11 dígitos'))
   .transform((v) => `${v.slice(0, 2)}-${v.slice(2, 10)}-${v.slice(10)}`);
 
+// Work-team label. Free text, lowercased and trimmed so equipos like
+// "BI" / "bi" / " bi " collapse to a single value in the by-team table.
+const equipoField = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(30, 'El equipo no puede superar 30 caracteres');
+
 export const createUserSchema = z.object({
   nombre: z.string().trim().min(1, 'El nombre es obligatorio').max(50),
   apellido: z.string().trim().min(1, 'El apellido es obligatorio').max(50),
   cuil: cuilField,
   email: emailField,
   password: passwordField,
+  // Empty string converts to null at the service layer (no equipo assigned).
+  equipo: equipoField.optional(),
   isAdmin: z.boolean().optional().default(false),
 });
 
@@ -50,6 +60,8 @@ export const updateUserSchema = z
     cuil: cuilField.optional(),
     email: emailField.optional(),
     password: passwordField.optional(),
+    // Nullable so the admin can clear an existing equipo.
+    equipo: equipoField.nullable().optional(),
     isAdmin: z.boolean().optional(),
     isActive: z.boolean().optional(),
   })

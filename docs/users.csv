@@ -1,0 +1,4 @@
+nombre,apellido,cuil,email,password,equipo,isAdmin
+Martin,Garcia,20-35123456-9,martin.garcia@carestino.com,Carestino2026,bi,False
+Lucia,Perez,27-32987654-3,lucia.perez@carestino.com,Carestino2026,compras,False
+Juan,Rodriguez,20-30111222-4,juan.rodriguez@carestino.com,Carestino2026,ssgg,False

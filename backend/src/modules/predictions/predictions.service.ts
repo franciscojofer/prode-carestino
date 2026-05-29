@@ -9,7 +9,6 @@ import type { Prisma } from '../../lib/db';
 import { NotFoundError, ValidationError } from '../../lib/errors';
 import {
   assertPredictionEditable,
-  assertKnockoutNotDraw,
   isLockedForPredictions,
 } from './predictions.guards';
 import type { PredictionInput } from './predictions.schemas';
@@ -44,9 +43,9 @@ export type ListPredictionsResult = {
 };
 
 // Creates or updates the authenticated user's prediction for a match.
-// Validates that the match exists, is not cancelled, is still editable
-// (15 min lock — rule 4.2), and that the prediction is not a draw in a
-// knockout match (rule 4.3).
+// Validates that the match exists, is not cancelled and is still editable
+// (15 min lock — rule 4.2). Draws are allowed in every match, including
+// knockouts (rule 4 — updated).
 //
 // Inputs: prisma client, user id, match id and validated prediction body.
 // Side effects: upserts `Prediction`. Throws `NotFoundError` or
@@ -59,18 +58,14 @@ export async function upsertPrediction(
 ): Promise<void> {
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    select: { id: true, scheduledAt: true, isKnockout: true, status: true },
+    select: { id: true, scheduledAt: true, status: true },
   });
   if (!match) throw new NotFoundError('El partido no existe');
   if (match.status === 'cancelled') {
     throw new ValidationError('El partido fue cancelado');
   }
 
-  // Order matters: tell the user about the lock first since it is the most
-  // common failure mode. A locked match also can't be edited even if the
-  // body is otherwise valid.
   assertPredictionEditable(match.scheduledAt);
-  assertKnockoutNotDraw(input.homeGoals, input.awayGoals, match.isKnockout);
 
   await prisma.prediction.upsert({
     where: { userId_matchId: { userId, matchId } },

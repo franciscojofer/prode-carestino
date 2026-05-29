@@ -10,7 +10,10 @@
 import type { Prisma } from '../../lib/db';
 import { NotFoundError, ValidationError } from '../../lib/errors';
 import { applyPredictionScoring } from '../scoring/scoring';
-import { invalidateStandingsCache } from '../tournament/standings.service';
+import {
+  invalidateStandingsCache,
+  invalidateTeamStandingsCache,
+} from '../tournament/standings.service';
 import { invalidateGroupsCache } from '../tournament/groupsTable.service';
 import type {
   MatchResultInput,
@@ -23,10 +26,13 @@ import type {
 // TTL. Called by every admin write path that touches a match.
 function invalidateMatchDerivedCaches(): void {
   invalidateStandingsCache();
+  invalidateTeamStandingsCache();
   invalidateGroupsCache();
 }
 
 // Common select used by `listMatches` so the row shape stays consistent.
+// `winnerByPenaltiesTeamId` is no longer surfaced — rule 4 was updated to
+// ignore penalty shootouts, so the field is vestigial.
 const matchSelect = {
   id: true,
   scheduledAt: true,
@@ -36,7 +42,6 @@ const matchSelect = {
   status: true,
   isKnockout: true,
   resolvedAdministratively: true,
-  winnerByPenaltiesTeamId: true,
   placeholderLabel: true,
   homeTeam: { select: { id: true, nameEs: true, code: true, flagEmoji: true } },
   awayTeam: { select: { id: true, nameEs: true, code: true, flagEmoji: true } },
@@ -101,11 +106,12 @@ export async function listMatches(prisma: Prisma, roundId?: number) {
 }
 
 // Stores the final result of a match and recomputes points for every
-// attached prediction.
+// attached prediction. The score is always the one at minute 120;
+// penalty shootouts no longer change the scoring outcome (rule 4 —
+// updated), so any pre-existing `winnerByPenaltiesTeamId` is cleared.
 // Inputs: prisma client, match id, validated result payload.
 // Output: none. Side effects: updates `Match`, mass-updates `Prediction`.
-// Throws: `NotFoundError` if the match doesn't exist, `ValidationError`
-// for shootout inputs that don't match the match metadata.
+// Throws: `NotFoundError` if the match doesn't exist.
 export async function setMatchResult(
   prisma: Prisma,
   matchId: number,
@@ -114,32 +120,12 @@ export async function setMatchResult(
   const match = await prisma.match.findUnique({ where: { id: matchId } });
   if (!match) throw new NotFoundError('El partido no existe');
 
-  // Coerce undefined to null so the DB always sees an explicit value when
-  // the admin clears the field.
-  const winner = input.winnerByPenaltiesTeamId ?? null;
-
-  if (winner !== null) {
-    if (winner !== match.homeTeamId && winner !== match.awayTeamId) {
-      throw new ValidationError(
-        'El equipo ganador por penales debe ser uno de los dos del partido',
-      );
-    }
-    if (!match.isKnockout) {
-      throw new ValidationError('Solo en eliminatorias se puede definir por penales');
-    }
-    if (input.homeGoals !== input.awayGoals) {
-      throw new ValidationError(
-        'Solo podés cargar ganador por penales si el partido terminó empatado en 120 minutos',
-      );
-    }
-  }
-
   await prisma.match.update({
     where: { id: matchId },
     data: {
       homeGoals: input.homeGoals,
       awayGoals: input.awayGoals,
-      winnerByPenaltiesTeamId: winner,
+      winnerByPenaltiesTeamId: null,
       // Posting a result implicitly flips the status. The admin can still
       // override this through PATCH if they need to mark it postponed.
       status: 'finished',

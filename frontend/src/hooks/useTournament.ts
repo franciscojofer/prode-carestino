@@ -18,6 +18,8 @@ export type StandingsRow = {
   name: string;
   totalPoints: number;
   exactCount: number;
+  gdHitCount: number;
+  winnerGoals: number;
 };
 
 export type TournamentRound = {
@@ -50,11 +52,40 @@ export type GroupTable = {
   teams: GroupTeam[];
 };
 
+// By-team leaderboard rows (rule 9 — team prizes). `averagePoints` is the
+// totalPoints divided by the equipo's current active members.
+export type TeamStandingsRow = {
+  position: number;
+  equipo: string;
+  members: number;
+  totalPoints: number;
+  averagePoints: number;
+};
+
+export type TeamRoundStandings = {
+  roundId: number;
+  roundName: string;
+  orderIndex: number;
+  teams: TeamStandingsRow[];
+};
+
+export type TeamStandingsResponse = {
+  byRound: TeamRoundStandings[];
+  total: TeamStandingsRow[];
+};
+
 export function useStandings() {
   return useQuery({
     queryKey: ['tournament', 'standings'],
     queryFn: () => apiFetch<{ standings: StandingsRow[] }>('/tournament/standings'),
     select: (data) => data.standings,
+  });
+}
+
+export function useTeamStandings() {
+  return useQuery({
+    queryKey: ['tournament', 'team-standings'],
+    queryFn: () => apiFetch<TeamStandingsResponse>('/tournament/team-standings'),
   });
 }
 

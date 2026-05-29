@@ -1,24 +1,17 @@
 // File: backend/src/modules/auth/auth.routes.ts
-// Purpose: HTTP routes for authentication: register, login, logout, /me.
+// Purpose: HTTP routes for authentication: login, logout, /me.
 // Functionality: Validates the request body with Zod, delegates to the
 // service layer, and manages the session cookie on success.
 // Role: Mounted under `/api/auth` from `src/index.ts`. The frontend talks
-// only to these endpoints for auth.
+// only to these endpoints for auth. Public self-registration was removed
+// once the payroll seed became the canonical user source.
 
 import type { FastifyInstance } from 'fastify';
-import { registerSchema, loginSchema } from './auth.schemas';
-import { registerUser, loginUser } from './auth.service';
+import { loginSchema } from './auth.schemas';
+import { loginUser } from './auth.service';
 import { UnauthorizedError } from '../../lib/errors';
 
 export async function authRoutes(app: FastifyInstance) {
-  // POST /register — creates a new account and signs the user in.
-  app.post('/register', async (req, reply) => {
-    const input = registerSchema.parse(req.body);
-    const user = await registerUser(app.prisma, input);
-    app.setSessionCookie(reply, { userId: user.id, isAdmin: user.isAdmin });
-    return reply.code(201).send({ user });
-  });
-
   // POST /login — verifies credentials and issues a session cookie.
   app.post('/login', async (req, reply) => {
     const input = loginSchema.parse(req.body);

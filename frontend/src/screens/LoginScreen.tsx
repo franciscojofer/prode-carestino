@@ -9,13 +9,17 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { Field } from '../components/Field';
 import { Button } from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../lib/apiClient';
 import { loginSchema, type LoginFormValues } from '../schemas/auth';
+
+// WhatsApp support contact rendered below the form. Centralised so the
+// number can be updated in a single place.
+const SUPPORT_WHATSAPP_URL = 'https://wa.me/5491122887777';
 
 // Fields whose error messages we want to map back into the form. Anything
 // else from the backend (`UNAUTHORIZED`, `TOO_MANY_REQUESTS`) becomes a
@@ -103,16 +107,18 @@ export function LoginScreen() {
           </Button>
         </div>
 
-        <Link
-          to="/register"
-          className="mt-2 text-sm text-center font-semibold text-brand-navy"
-        >
-          ¿No tenés cuenta? <span className="text-brand-orange">Registrate</span>
-        </Link>
-
-        <div className="text-[11px] text-center mt-1 text-muted">
+        <div className="mt-2 text-[11px] text-center text-muted">
           Si olvidaste tu contraseña, contactá al admin.
         </div>
+
+        <a
+          href={SUPPORT_WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] text-center font-semibold text-brand-orange"
+        >
+          Ante dudas, contactanos por WhatsApp
+        </a>
       </form>
 
       <div className="px-6 py-4 text-center text-[10px] tracking-wider text-muted">

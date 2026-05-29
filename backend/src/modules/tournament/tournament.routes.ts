@@ -9,7 +9,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getActiveRound } from './tournament.queries';
 import { getGroupsTable } from './groupsTable.service';
-import { getStandings } from './standings.service';
+import { getStandings, getTeamStandings } from './standings.service';
 import { isLockedForPredictions } from '../predictions/predictions.guards';
 import { NotFoundError } from '../../lib/errors';
 import { cached, invalidate } from '../../lib/cache';
@@ -111,9 +111,17 @@ export async function tournamentRoutes(app: FastifyInstance) {
     };
   });
 
-  // GET /standings — global leaderboard with shared ranks (rule 4.8).
+  // GET /standings — global leaderboard (rule 8 — updated).
   app.get('/standings', { onRequest: [app.requireAuth] }, async () => {
     const standings = await getStandings(app.prisma);
     return { standings };
+  });
+
+  // GET /team-standings — by-team leaderboard with per-round breakdowns
+  // and overall totals (rule 9 — team prizes). Averages are computed over
+  // the current count of active members per equipo.
+  app.get('/team-standings', { onRequest: [app.requireAuth] }, async () => {
+    const teamStandings = await getTeamStandings(app.prisma);
+    return teamStandings;
   });
 }

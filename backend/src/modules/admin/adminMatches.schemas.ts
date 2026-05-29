@@ -6,13 +6,12 @@
 
 import { z } from 'zod';
 
-// Result payload posted when the admin enters a final score.
-// `winnerByPenaltiesTeamId` is optional and only used when the match ended
-// tied at 120 minutes in a knockout round.
+// Result payload posted when the admin enters a final score (always the
+// score at minute 120 — penalty shootouts are no longer part of scoring,
+// rule 4 — updated).
 export const matchResultSchema = z.object({
   homeGoals: z.number().int().min(0, 'Debe ser 0 o mayor').max(99),
   awayGoals: z.number().int().min(0, 'Debe ser 0 o mayor').max(99),
-  winnerByPenaltiesTeamId: z.number().int().positive().nullable().optional(),
 });
 
 // Allowed match statuses. Mirrors the values used by the model.

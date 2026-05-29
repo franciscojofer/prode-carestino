@@ -31,7 +31,7 @@ const RULES: Rule[] = [
   {
     title: '4. Eliminatorias',
     body:
-      'En partidos de eliminación directa NO se puede predecir empate. Tenés que ingresar un ganador y un perdedor. Si el partido se define por penales, vale como victoria simple del ganador (3 puntos para quien lo predijo).',
+      'En playoffs podés predecir empate. Se toma siempre el resultado al minuto 120: si el partido se define por penales, esos goles no cuentan. Las predicciones se puntúan con las mismas reglas que la fase de grupos.',
   },
   {
     title: '5. Partidos postergados',
@@ -51,7 +51,12 @@ const RULES: Rule[] = [
   {
     title: '8. Tabla de posiciones',
     body:
-      'Se ordena por puntos de mayor a menor. En caso de empate, los participantes comparten posición (puede haber 1°, 2°, 2°, 4°). Para el orden visual entre empatados, quien tenga más resultados exactos aparece primero.',
+      'Se ordena por puntos de mayor a menor. Cada participante tiene una posición única (no se comparten puestos). En caso de empate en puntaje, se desempata por:\n1) Mayor cantidad de resultados exactos.\n2) Mayor cantidad de aciertos con diferencia de gol (predicciones de 5 o 7 puntos).\n3) Mayor cantidad de goles del equipo ganador en los partidos donde se acertó el ganador.\n4) Orden alfabético por nombre.',
+  },
+  {
+    title: '9. Premios por equipo',
+    body:
+      'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pestaña Torneo, el slider "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada (premio por fecha).\n• Total: ranking acumulado al final del torneo (premio al campeón por equipo).\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos). Los administradores y los usuarios sin equipo no cuentan.',
   },
 ];
 

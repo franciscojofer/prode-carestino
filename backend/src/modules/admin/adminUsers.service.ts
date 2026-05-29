@@ -7,6 +7,10 @@
 import bcrypt from 'bcrypt';
 import type { Prisma as PrismaClient } from '../../lib/db';
 import { ConflictError, NotFoundError, ForbiddenError } from '../../lib/errors';
+import {
+  invalidateStandingsCache,
+  invalidateTeamStandingsCache,
+} from '../tournament/standings.service';
 import type { CreateUserInput, UpdateUserInput } from './adminUsers.schemas';
 
 const BCRYPT_ROUNDS = 12;
@@ -19,6 +23,7 @@ export type AdminUserRow = {
   apellido: string;
   cuil: string;
   email: string;
+  equipo: string | null;
   isAdmin: boolean;
   isActive: boolean;
   createdAt: Date;
@@ -33,11 +38,21 @@ const adminUserSelect = {
   apellido: true,
   cuil: true,
   email: true,
+  equipo: true,
   isAdmin: true,
   isActive: true,
   createdAt: true,
   joinedRound: { select: { id: true, name: true, orderIndex: true } },
 } as const;
+
+// Normalises an incoming `equipo` value: blank strings become null so the
+// admin can clear the field by sending an empty input.
+function normaliseEquipo(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
 
 // Returns every user (active and inactive) ordered by id.
 // Inputs: prisma client. Output: array of users. Read-only.
@@ -73,18 +88,26 @@ export async function createUserAsAdmin(
     orderBy: { orderIndex: 'desc' },
   });
 
-  return prisma.user.create({
+  const created = await prisma.user.create({
     data: {
       nombre: input.nombre,
       apellido: input.apellido,
       cuil: input.cuil,
       email: input.email,
+      equipo: normaliseEquipo(input.equipo) ?? null,
       passwordHash,
       isAdmin: input.isAdmin,
       joinedRoundId: activeRound?.id ?? null,
     },
     select: adminUserSelect,
   });
+
+  // A new active user changes the denominator of the by-team averages and
+  // adds a row to the individual leaderboard, so drop the cached views.
+  invalidateStandingsCache();
+  invalidateTeamStandingsCache();
+
+  return created;
 }
 
 // Updates an existing user. Re-hashes the password when present, and runs a
@@ -141,6 +164,7 @@ export async function updateUserAsAdmin(
     apellido?: string;
     cuil?: string;
     email?: string;
+    equipo?: string | null;
     passwordHash?: string;
     isAdmin?: boolean;
     isActive?: boolean;
@@ -149,17 +173,25 @@ export async function updateUserAsAdmin(
   if (input.apellido !== undefined) data.apellido = input.apellido;
   if (input.cuil !== undefined) data.cuil = input.cuil;
   if (input.email !== undefined) data.email = input.email;
+  if (input.equipo !== undefined) data.equipo = normaliseEquipo(input.equipo) ?? null;
   if (input.isAdmin !== undefined) data.isAdmin = input.isAdmin;
   if (input.isActive !== undefined) data.isActive = input.isActive;
   if (input.password !== undefined) {
     data.passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
   }
 
-  return prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: userId },
     data,
     select: adminUserSelect,
   });
+
+  // Any change in equipo, name or active state affects the standings the
+  // frontend caches, so refresh both views.
+  invalidateStandingsCache();
+  invalidateTeamStandingsCache();
+
+  return updated;
 }
 
 // Soft-deletes a user by flipping `isActive` to false (rule from section 5).
@@ -193,4 +225,7 @@ export async function deactivateUser(
     where: { id: userId },
     data: { isActive: false },
   });
+
+  invalidateStandingsCache();
+  invalidateTeamStandingsCache();
 }

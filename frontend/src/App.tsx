@@ -1,16 +1,15 @@
 // File: frontend/src/App.tsx
 // Purpose: Top-level component that defines every application route.
-// Functionality: Public routes (/login, /register) plus authenticated
-// routes wrapped in ProtectedRoute and admin-only routes wrapped in
-// AdminRoute. Most screens are placeholders that will be replaced in
-// blocks 7-9.
+// Functionality: Public login route plus authenticated routes wrapped in
+// ProtectedRoute and admin-only routes wrapped in AdminRoute. Public
+// self-registration was removed — users are seeded from the payroll CSV
+// and managed exclusively from the admin panel.
 // Role: Mounted by main.tsx inside the Router and QueryClient providers.
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { LoginScreen } from './screens/LoginScreen';
-import { RegisterScreen } from './screens/RegisterScreen';
 import { TorneoScreen } from './screens/TorneoScreen';
 import { EstadisticasScreen } from './screens/EstadisticasScreen';
 import { PrediccionesScreen } from './screens/PrediccionesScreen';
@@ -25,7 +24,6 @@ export default function App() {
     <Routes>
       {/* Public auth routes */}
       <Route path="/login" element={<LoginScreen />} />
-      <Route path="/register" element={<RegisterScreen />} />
 
       {/* Authenticated routes */}
       <Route element={<ProtectedRoute />}>

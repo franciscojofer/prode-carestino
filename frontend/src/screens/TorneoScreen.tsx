@@ -1,15 +1,23 @@
 // File: frontend/src/screens/TorneoScreen.tsx
 // Purpose: Leaderboard screen — the home tab.
-// Functionality: Renders a "Tu posición" card at the top with the current
-// user's rank and points (if they accrue any), followed by the global
-// standings table with shared ranks. The current user's row is highlighted
-// using the orange-soft background from the mockup.
+// Functionality: Two top-level views switched with a SegmentedControl:
+//   - Individual: "Tu posición" card + global table with unique ranks.
+//   - Equipos:    by-team table with a sub-selector for "Por fecha"
+//                 (chevron-navigated round) and "Total" (overall avg).
 // Role: Bound to /torneo behind ProtectedRoute.
 
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Card } from '../components/Card';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { useAuth } from '../hooks/useAuth';
-import { useStandings, type StandingsRow } from '../hooks/useTournament';
+import {
+  useStandings,
+  useTeamStandings,
+  type StandingsRow,
+  type TeamStandingsRow,
+} from '../hooks/useTournament';
 
 // Returns the up-to-two-letter initials used in the avatar circle.
 // Example: "Martín García" → "MG", "Lucía" → "L".
@@ -21,20 +29,58 @@ function getInitials(fullName: string): string {
     .join('');
 }
 
+// Top-level view selector.
+type TopView = 'individual' | 'teams';
+// Sub-view inside Equipos.
+type TeamScope = 'round' | 'total';
+
 export function TorneoScreen() {
   const { user } = useAuth();
-  const standings = useStandings();
+  const [view, setView] = useState<TopView>('individual');
 
   return (
     <Layout title="Torneo">
-      {/* "Tu posición" card. Anchors visually above the table by overlapping
-          the orange header with a negative margin. */}
       <div className="px-4 -mt-3 mb-3">
+        <SegmentedControl
+          value={view}
+          onChange={(v) => setView(v as TopView)}
+          options={[
+            { value: 'individual', label: 'INDIVIDUAL' },
+            { value: 'teams', label: 'EQUIPOS' },
+          ]}
+        />
+      </div>
+
+      {view === 'individual' ? (
+        <IndividualView userId={user?.id ?? null} userName={user ? `${user.nombre} ${user.apellido}` : ''} isAdmin={user?.isAdmin ?? false} />
+      ) : (
+        <TeamsView />
+      )}
+    </Layout>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Individual view (original behaviour)
+// ---------------------------------------------------------------------------
+
+type IndividualViewProps = {
+  userId: number | null;
+  userName: string;
+  isAdmin: boolean;
+};
+
+function IndividualView({ userId, userName, isAdmin }: IndividualViewProps) {
+  const standings = useStandings();
+
+  return (
+    <>
+      <div className="px-4 mb-3">
         <UserPositionCard
-          fullName={user ? `${user.nombre} ${user.apellido}` : ''}
+          fullName={userName}
           standings={standings.data ?? []}
-          currentUserId={user?.id ?? null}
-          isAdmin={user?.isAdmin ?? false}
+          currentUserId={userId}
+          isAdmin={isAdmin}
         />
       </div>
 
@@ -59,10 +105,10 @@ export function TorneoScreen() {
             </div>
           </Card>
         ) : (
-          <StandingsTable rows={standings.data ?? []} currentUserId={user?.id ?? null} />
+          <StandingsTable rows={standings.data ?? []} currentUserId={userId} />
         )}
       </div>
-    </Layout>
+    </>
   );
 }
 
@@ -162,6 +208,155 @@ function StandingsTable({ rows, currentUserId }: StandingsTableProps) {
           </div>
         );
       })}
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Teams view (rule 9 — team prizes)
+// ---------------------------------------------------------------------------
+
+function TeamsView() {
+  const teams = useTeamStandings();
+  const [scope, setScope] = useState<TeamScope>('round');
+  // Selected roundId for the "Por fecha" sub-view. Defaults to the first
+  // round that has any non-zero points; falls back to the first round.
+  const [roundId, setRoundId] = useState<number | null>(null);
+
+  // Pick a sensible default round once data arrives.
+  useEffect(() => {
+    if (roundId !== null || !teams.data) return;
+    // Latest round with any points awarded — usually the one being played.
+    const byRound = teams.data.byRound;
+    const latestWithPoints = [...byRound]
+      .reverse()
+      .find((r) => r.teams.some((t) => t.totalPoints > 0));
+    setRoundId((latestWithPoints ?? byRound[0])?.roundId ?? null);
+  }, [teams.data, roundId]);
+
+  if (teams.isLoading) {
+    return (
+      <div className="px-4 pb-6">
+        <Card>
+          <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (teams.isError || !teams.data) {
+    return (
+      <div className="px-4 pb-6">
+        <Card>
+          <div className="px-4 py-8 text-center text-sm text-danger">
+            No pudimos cargar la tabla por equipos. Reintentá en un momento.
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  const ordered = teams.data.byRound;
+  const idx = ordered.findIndex((r) => r.roundId === roundId);
+  const canPrev = idx > 0;
+  const canNext = idx >= 0 && idx < ordered.length - 1;
+  const selectedRound = idx >= 0 ? ordered[idx] : null;
+
+  return (
+    <div className="px-4 pb-6">
+      <div className="mb-3">
+        <SegmentedControl
+          value={scope}
+          onChange={(v) => setScope(v as TeamScope)}
+          options={[
+            { value: 'round', label: 'POR FECHA' },
+            { value: 'total', label: 'TOTAL' },
+          ]}
+        />
+      </div>
+
+      {scope === 'round' ? (
+        <>
+          <div className="mb-3 rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">
+            <button
+              type="button"
+              onClick={() => canPrev && setRoundId(ordered[idx - 1].roundId)}
+              disabled={!canPrev}
+              className="p-1 text-muted disabled:opacity-30"
+              aria-label="Fecha anterior"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <div className="text-sm font-bold text-ink truncate px-2">
+              {selectedRound?.roundName ?? '—'}
+            </div>
+            <button
+              type="button"
+              onClick={() => canNext && setRoundId(ordered[idx + 1].roundId)}
+              disabled={!canNext}
+              className="p-1 text-brand-orange disabled:opacity-30"
+              aria-label="Fecha siguiente"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          <TeamStandingsTable rows={selectedRound?.teams ?? []} />
+        </>
+      ) : (
+        <>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-xs font-extrabold tracking-[0.18em] text-brand-navy">
+              CAMPEÓN POR EQUIPO
+            </h2>
+            <span className="text-[11px] font-semibold text-muted">
+              {teams.data.total.length} equipos
+            </span>
+          </div>
+          <TeamStandingsTable rows={teams.data.total} />
+        </>
+      )}
+    </div>
+  );
+}
+
+type TeamStandingsTableProps = { rows: TeamStandingsRow[] };
+
+function TeamStandingsTable({ rows }: TeamStandingsTableProps) {
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <div className="px-4 py-8 text-center text-sm text-muted">
+          Todavía no hay equipos con puntos.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <div className="grid grid-cols-12 px-3 py-2.5 text-[10px] font-bold tracking-wider text-muted bg-surface-alt">
+        <div className="col-span-1">#</div>
+        <div className="col-span-5">EQUIPO</div>
+        <div className="col-span-2 text-right">INT.</div>
+        <div className="col-span-2 text-right">PTS</div>
+        <div className="col-span-2 text-right">PROM.</div>
+      </div>
+      {rows.map((row, i) => (
+        <div
+          key={row.equipo}
+          className={`grid grid-cols-12 px-3 py-3 text-sm items-center text-ink font-medium ${
+            i === 0 ? '' : 'border-t'
+          }`}
+        >
+          <div className="col-span-1 font-bold">{row.position}</div>
+          <div className="col-span-5 uppercase truncate">{row.equipo}</div>
+          <div className="col-span-2 text-right">{row.members}</div>
+          <div className="col-span-2 text-right">{row.totalPoints}</div>
+          <div className="col-span-2 text-right font-extrabold text-brand-orange">
+            {row.averagePoints.toFixed(1)}
+          </div>
+        </div>
+      ))}
     </Card>
   );
 }

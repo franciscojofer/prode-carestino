@@ -1,57 +1,61 @@
 // File: backend/src/modules/tournament/standings.test.ts
-// Purpose: Unit tests for the shared-rank assignment used by the leaderboard.
-// Functionality: Exercises rule 4.8 — tied users share the same position
-// number and the next position is skipped accordingly.
-// Role: Required by section 10 of the product spec (standings tie test).
+// Purpose: Unit tests for the position-assignment helper used by the
+// leaderboard.
+// Functionality: Exercises rule 8 (updated) — positions are sequential
+// and unique even when metric tuples are identical, since callers are
+// expected to fully sort rows by the entire tie-break tuple.
+// Role: Required by section 10 of the product spec (standings test).
 
 import { describe, it, expect } from 'vitest';
 import { __test } from './standings.service';
 
 const { assignPositions } = __test;
 
-describe('assignPositions (rule 4.8 — shared ranks)', () => {
+// Builder so each test reads as data. The tie-break metrics default to 0
+// because `assignPositions` itself only cares about ordering, not values.
+function row(partial: { userId: number; name: string; totalPoints: number; exactCount?: number; gdHitCount?: number; winnerGoals?: number }) {
+  return {
+    exactCount: 0,
+    gdHitCount: 0,
+    winnerGoals: 0,
+    ...partial,
+  };
+}
+
+describe('assignPositions (rule 8 — unique sequential positions)', () => {
   it('assigns sequential positions when no ties exist', () => {
     const rows = [
-      { userId: 1, name: 'A', totalPoints: 30, exactCount: 5 },
-      { userId: 2, name: 'B', totalPoints: 25, exactCount: 4 },
-      { userId: 3, name: 'C', totalPoints: 20, exactCount: 2 },
+      row({ userId: 1, name: 'A', totalPoints: 30 }),
+      row({ userId: 2, name: 'B', totalPoints: 25 }),
+      row({ userId: 3, name: 'C', totalPoints: 20 }),
     ];
     expect(assignPositions(rows).map((r) => r.position)).toEqual([1, 2, 3]);
   });
 
-  it('shares position on a tie and skips the next slot', () => {
-    // Spec example: 1° (30), 2° (28), 2° (28), 4° (27) — the 3rd slot is
-    // skipped because the second position is shared.
+  it('never shares a position, even when point totals match', () => {
+    // Spec change: where the old rule produced 1, 2, 2, 4 the new one is
+    // strictly 1, 2, 3, 4 — the caller is responsible for resolving the
+    // tie through the full tie-break tuple.
     const rows = [
-      { userId: 1, name: 'A', totalPoints: 30, exactCount: 5 },
-      { userId: 2, name: 'B', totalPoints: 28, exactCount: 4 },
-      { userId: 3, name: 'C', totalPoints: 28, exactCount: 3 },
-      { userId: 4, name: 'D', totalPoints: 27, exactCount: 2 },
+      row({ userId: 1, name: 'A', totalPoints: 30 }),
+      row({ userId: 2, name: 'B', totalPoints: 28 }),
+      row({ userId: 3, name: 'C', totalPoints: 28 }),
+      row({ userId: 4, name: 'D', totalPoints: 27 }),
     ];
-    expect(assignPositions(rows).map((r) => r.position)).toEqual([1, 2, 2, 4]);
+    expect(assignPositions(rows).map((r) => r.position)).toEqual([1, 2, 3, 4]);
   });
 
-  it('handles triple ties at the top', () => {
+  it('preserves the input order of rows inside a tie', () => {
+    // Caller is expected to have already applied the full ordering tuple.
+    // The function must not reorder rows.
     const rows = [
-      { userId: 1, name: 'A', totalPoints: 30, exactCount: 6 },
-      { userId: 2, name: 'B', totalPoints: 30, exactCount: 5 },
-      { userId: 3, name: 'C', totalPoints: 30, exactCount: 4 },
-      { userId: 4, name: 'D', totalPoints: 25, exactCount: 3 },
-    ];
-    expect(assignPositions(rows).map((r) => r.position)).toEqual([1, 1, 1, 4]);
-  });
-
-  it('keeps tied rows in their pre-sorted exactCount order', () => {
-    // Caller is expected to have sorted by points DESC, exactCount DESC.
-    // The function must not reorder rows inside a tie.
-    const rows = [
-      { userId: 1, name: 'Z', totalPoints: 30, exactCount: 6 },
-      { userId: 2, name: 'A', totalPoints: 30, exactCount: 2 },
+      row({ userId: 1, name: 'Z', totalPoints: 30, exactCount: 6 }),
+      row({ userId: 2, name: 'A', totalPoints: 30, exactCount: 2 }),
     ];
     const result = assignPositions(rows);
     expect(result[0].userId).toBe(1);
     expect(result[1].userId).toBe(2);
     expect(result[0].position).toBe(1);
-    expect(result[1].position).toBe(1);
+    expect(result[1].position).toBe(2);
   });
 });

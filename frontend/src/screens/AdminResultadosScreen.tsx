@@ -3,8 +3,8 @@
 // Functionality: Round selector at the top (chevrons), then one card per
 // match. Each card has goal inputs, a status pill (FINALIZADO / PROGRAMADO),
 // and a Guardar button that fires the PUT /admin/matches/:id/result.
-// For knockout matches tied at 120 min, an additional selector appears
-// so the admin can mark the team that won on penalties.
+// The score entered is the one at minute 120 — penalties are not part of
+// scoring (rule 4 — updated), so no penalty picker is shown.
 // Role: Bound to /admin/resultados behind AdminRoute.
 
 import { useEffect, useState } from 'react';
@@ -45,10 +45,10 @@ export function AdminResultadosScreen() {
   const canNext = idx >= 0 && idx < ordered.length - 1;
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-alt">
+    <div className="flex flex-col h-dvh overflow-hidden bg-surface-alt">
       <Header title="Panel Admin" showBack onBack={() => navigate('/mas')} adminBadge />
 
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-3 pb-2 shrink-0">
         <SegmentedControl
           value="results"
           onChange={(v) => v === 'users' && navigate('/admin/usuarios')}
@@ -75,7 +75,7 @@ export function AdminResultadosScreen() {
         />
       </div>
 
-      <div className="px-4 pt-2 pb-2">
+      <div className="px-4 pt-2 pb-2 shrink-0">
         <div className="rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">
           <button
             type="button"
@@ -101,7 +101,7 @@ export function AdminResultadosScreen() {
         </div>
       </div>
 
-      <main className="flex-1 overflow-y-auto px-4 pb-4 space-y-3 pt-1">
+      <main className="flex-1 overflow-y-auto overscroll-y-contain px-4 pb-4 space-y-3 pt-1">
         {matches.isLoading ? (
           <Card>
             <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
@@ -130,9 +130,6 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
   // Local input state mirrors the saved score (or empty when missing).
   const [home, setHome] = useState(match.homeGoals !== null ? String(match.homeGoals) : '');
   const [away, setAway] = useState(match.awayGoals !== null ? String(match.awayGoals) : '');
-  const [penaltyWinner, setPenaltyWinner] = useState<number | null>(
-    match.winnerByPenaltiesTeamId,
-  );
   const [error, setError] = useState<string | null>(null);
   const setResult = useSetMatchResult();
   const deleteResult = useDeleteMatchResult();
@@ -143,19 +140,15 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
     if (setResult.isPending) return;
     setHome(match.homeGoals !== null ? String(match.homeGoals) : '');
     setAway(match.awayGoals !== null ? String(match.awayGoals) : '');
-    setPenaltyWinner(match.winnerByPenaltiesTeamId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [match.homeGoals, match.awayGoals, match.winnerByPenaltiesTeamId]);
+  }, [match.homeGoals, match.awayGoals]);
 
   const sanitize = (v: string) => v.replace(/\D/g, '').slice(0, 2);
   const isFinished = match.status === 'finished';
   const homeFilled = home !== '';
   const awayFilled = away !== '';
   const bothFilled = homeFilled && awayFilled;
-  const isKnockoutTie = match.isKnockout && bothFilled && Number(home) === Number(away);
-  // Save button only enabled when the inputs make sense for the rules.
-  const canSave =
-    bothFilled && (!isKnockoutTie || penaltyWinner !== null);
+  const canSave = bothFilled;
 
   async function handleSave() {
     if (!canSave) return;
@@ -165,7 +158,6 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
         matchId: match.id,
         homeGoals: Number(home),
         awayGoals: Number(away),
-        winnerByPenaltiesTeamId: isKnockoutTie ? penaltyWinner : null,
       });
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'No pudimos guardar el resultado.');
@@ -227,28 +219,6 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
         />
         <TeamCell team={match.awayTeam} align="right" />
       </div>
-
-      {isKnockoutTie && (
-        <div className="mt-3 p-2 rounded-lg bg-surface-alt border">
-          <div className="text-[10px] font-bold tracking-wider text-brand-navy mb-1.5">
-            EMPATE EN 120 MIN · GANADOR POR PENALES
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <PenaltyChoice
-              label={match.homeTeam.nameEs}
-              flag={match.homeTeam.flagEmoji}
-              checked={penaltyWinner === match.homeTeam.id}
-              onSelect={() => setPenaltyWinner(match.homeTeam.id)}
-            />
-            <PenaltyChoice
-              label={match.awayTeam.nameEs}
-              flag={match.awayTeam.flagEmoji}
-              checked={penaltyWinner === match.awayTeam.id}
-              onSelect={() => setPenaltyWinner(match.awayTeam.id)}
-            />
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="mt-2 text-[11px] font-semibold text-danger">{error}</div>
@@ -340,27 +310,6 @@ function GoalInput({ value, filled, onChange, ...rest }: GoalInputProps) {
       placeholder="–"
       {...rest}
     />
-  );
-}
-
-type PenaltyChoiceProps = {
-  label: string;
-  flag: string;
-  checked: boolean;
-  onSelect: () => void;
-};
-function PenaltyChoice({ label, flag, checked, onSelect }: PenaltyChoiceProps) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-bold transition-colors border ${
-        checked ? 'bg-brand-orange text-white border-brand-orange' : 'bg-surface text-ink'
-      }`}
-    >
-      <span className="text-base leading-none">{flag}</span>
-      <span className="truncate">{label}</span>
-    </button>
   );
 }
 

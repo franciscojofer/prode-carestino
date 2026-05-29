@@ -16,6 +16,7 @@ export type AdminUserRow = {
   apellido: string;
   cuil: string;
   email: string;
+  equipo: string | null;
   isAdmin: boolean;
   isActive: boolean;
   createdAt: string;
@@ -36,6 +37,7 @@ export type CreateUserBody = {
   cuil: string;
   email: string;
   password: string;
+  equipo?: string;
   isAdmin?: boolean;
 };
 
@@ -54,6 +56,8 @@ export type UpdateUserBody = Partial<{
   cuil: string;
   email: string;
   password: string;
+  // `null` clears an existing equipo; `string` sets/updates it.
+  equipo: string | null;
   isAdmin: boolean;
   isActive: boolean;
 }>;
@@ -87,7 +91,6 @@ export type AdminMatchRow = {
   status: string;
   isKnockout: boolean;
   resolvedAdministratively: boolean;
-  winnerByPenaltiesTeamId: number | null;
   placeholderLabel: string | null;
   homeTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
   awayTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
@@ -110,7 +113,6 @@ export function useAdminMatches(roundId: number | null) {
 export type SetResultBody = {
   homeGoals: number;
   awayGoals: number;
-  winnerByPenaltiesTeamId?: number | null;
 };
 
 export function useSetMatchResult() {

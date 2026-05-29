@@ -1,9 +1,11 @@
 // File: backend/src/modules/scoring/scoring.ts
 // Purpose: Pure scoring engine for predictions.
 // Functionality: Given a prediction and the real result, computes the points
-// awarded according to the rules in section 4.1 of the product spec, plus
-// the knockout-by-penalties exception. No database access — everything is
-// passed by argument so the function is trivially testable.
+// awarded according to the rules in section 4.1 of the product spec. The
+// scoring is identical for group stage and knockout matches: the result
+// considered is the score at minute 120 — penalty shootouts do NOT change
+// the scoring outcome. No database access — everything is passed by
+// argument so the function is trivially testable.
 // Role: Called by `applyPredictionScoring` (DB-aware wrapper) on every
 // admin update of a match result, and by the recalculation routine.
 
@@ -17,69 +19,39 @@ export type ScoreResult = {
 };
 
 // Inputs for `calculatePoints`. All numeric fields are non-negative integers
-// (goals) and the team ids reference the home/away of the same match so the
-// penalties exception can identify which side won the shootout.
+// (goals at minute 120). The `isKnockout` flag is kept for callers that
+// still pass it but no longer changes the scoring outcome — playoffs use
+// the same rules as the group stage and draws are now allowed.
 export type CalculatePointsInput = {
   predHome: number;
   predAway: number;
   realHome: number;
   realAway: number;
   isKnockout: boolean;
-  // Present only when a knockout match was tied at 120 min and decided on
-  // penalties. Holds the id of the team that won the shootout.
-  winnerByPenaltiesTeamId: number | null;
-  homeTeamId: number;
-  awayTeamId: number;
 };
 
 // Computes the points for a single prediction.
 //
-// Rules summary:
+// Rules summary (uniform for group stage and knockouts):
 //  - Exact score → 7 points.
 //  - Same winner AND same goal difference → 5 points.
 //  - Same winner only → 3 points.
 //  - Otherwise → 0 points.
 //
-// Knockout exception (4.1): if a knockout match was tied at 120 min and a
-// `winnerByPenaltiesTeamId` is provided, anyone who picked that team to win
-// gets 3 points. Exact-score still applies (so a defensive 1-1 prediction
-// that somehow slipped past validation can still earn 7).
+// Both `realHome`/`realAway` and `predHome`/`predAway` correspond to the
+// score at minute 120. Penalty shootouts are informational only and do
+// not influence the scoring result (rule 4 — updated).
 //
 // Inputs: see `CalculatePointsInput`. Output: `ScoreResult` with points and
 // whether the prediction was exact. Pure — no side effects.
 export function calculatePoints(input: CalculatePointsInput): ScoreResult {
-  const {
-    predHome,
-    predAway,
-    realHome,
-    realAway,
-    isKnockout,
-    winnerByPenaltiesTeamId,
-    homeTeamId,
-    awayTeamId,
-  } = input;
+  const { predHome, predAway, realHome, realAway } = input;
 
   // Exact-score check first; it dominates every other rule.
   if (predHome === realHome && predAway === realAway) {
     return { points: 7, isExact: true };
   }
 
-  // Knockout decided on penalties. The "real winner" by points is the draw
-  // in 120 min, but the spec carves out a 3-point reward for guessing the
-  // shootout winner.
-  if (isKnockout && realHome === realAway && winnerByPenaltiesTeamId !== null) {
-    // A draw prediction shouldn't slip through (rule 4.3 blocks it both in
-    // backend and frontend), but defensively: an empate awards 0.
-    if (predHome === predAway) {
-      return { points: 0, isExact: false };
-    }
-    const predictedWinnerId = predHome > predAway ? homeTeamId : awayTeamId;
-    return predictedWinnerId === winnerByPenaltiesTeamId
-      ? { points: 3, isExact: false }
-      : { points: 0, isExact: false };
-  }
-
-  // General path (group stage, plus knockouts that ended in regulation).
   const realDiff = realHome - realAway;
   const predDiff = predHome - predAway;
   const realWinner = Math.sign(realDiff);
@@ -130,9 +102,6 @@ export async function applyPredictionScoring(prisma: Prisma, matchId: number): P
       realHome: match.homeGoals!,
       realAway: match.awayGoals!,
       isKnockout: match.isKnockout,
-      winnerByPenaltiesTeamId: match.winnerByPenaltiesTeamId,
-      homeTeamId: match.homeTeamId,
-      awayTeamId: match.awayTeamId,
     });
     await prisma.prediction.update({
       where: { id: pred.id },

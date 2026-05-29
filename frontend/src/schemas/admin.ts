@@ -30,12 +30,21 @@ const cuilField = z
 const nameField = (label: string) =>
   z.string().trim().min(1, `${label} es obligatorio`).max(50);
 
+// Work-team label. Same rules as the backend: free text, capped, normalised
+// to lowercase. Optional so blank input stays blank.
+const equipoField = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(30, 'El equipo no puede superar 30 caracteres');
+
 export const adminCreateUserSchema = z.object({
   nombre: nameField('El nombre'),
   apellido: nameField('El apellido'),
   cuil: cuilField,
   email: emailField,
   password: passwordRules,
+  equipo: equipoField.optional(),
   isAdmin: z.boolean().default(false),
 });
 export type AdminCreateUserValues = z.infer<typeof adminCreateUserSchema>;
@@ -49,6 +58,7 @@ export const adminEditUserSchema = z.object({
   cuil: cuilField.optional(),
   email: emailField.optional(),
   password: z.union([z.literal(''), passwordRules]).optional(),
+  equipo: equipoField.optional(),
   isAdmin: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });

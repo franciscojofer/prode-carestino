@@ -2,14 +2,17 @@
 // Purpose: Production seed for the Mundial 2026 prediction app.
 // Functionality: Loads the admin user, the nine tournament rounds, the
 // twelve groups, the forty-eight teams and the one-hundred-and-four
-// matches from `docs/teams.csv` and `docs/matches.csv`. Knockout matches
-// whose teams are not yet known use a single "Por definir" placeholder
-// team and store the FIFA slot label (e.g. "1A vs 3CEFHI") so the admin
-// can fill in the real teams once the group stage decides.
+// matches from `docs/teams.csv` and `docs/matches.csv`, plus the payroll
+// users from `docs/users.csv`. Knockout matches whose teams are not yet
+// known use a single "Por definir" placeholder team and store the FIFA
+// slot label (e.g. "1A vs 3CEFHI") so the admin can fill in the real
+// teams once the group stage decides.
 // When the CSV files are missing the script falls back to the old
-// alphabetical placeholder fixture so development environments still work.
+// alphabetical placeholder fixture so development environments still
+// work; users.csv is purely optional.
 // Role: Run once with `npm run seed`. Safe to re-run — admin, rounds,
-// groups and teams are upserted; matches are skipped if any already exist.
+// groups, teams and payroll users are upserted; matches are skipped if
+// any already exist; existing user passwords are never overwritten.
 
 import 'dotenv/config';
 import { readFileSync, existsSync } from 'node:fs';
@@ -84,6 +87,7 @@ const TBD_TEAM = { name: 'Por definir', code: 'TBD', flag: '🏳️' };
 // root so the script works regardless of where node is invoked from.
 const TEAMS_CSV = resolve(process.cwd(), '..', 'docs', 'teams.csv');
 const MATCHES_CSV = resolve(process.cwd(), '..', 'docs', 'matches.csv');
+const USERS_CSV = resolve(process.cwd(), '..', 'docs', 'users.csv');
 
 // ============================================================================
 // CSV HELPERS
@@ -113,6 +117,19 @@ type CsvTeam = {
   isPlaceholder: boolean;
 };
 
+// Payroll user loaded from docs/users.csv. `password` is the plaintext
+// initial credential — the seed hashes it before insertion. `equipo` is
+// the work team label used by the by-team leaderboard.
+type CsvUser = {
+  nombre: string;
+  apellido: string;
+  cuil: string;
+  email: string;
+  password: string;
+  equipo: string | null;
+  isAdmin: boolean;
+};
+
 type CsvMatch = {
   id: number;
   matchNumber: number;
@@ -134,6 +151,36 @@ function readTeamsCsv(): CsvTeam[] | null {
     group: row.group_letter,
     isPlaceholder: row.is_placeholder === 'True',
   }));
+}
+
+// Reads `users.csv`. Returns null when the file is missing so the seed
+// simply skips payroll loading. `equipo` is normalised to lowercase to
+// match the admin validator; blank cells become null. `isAdmin` accepts
+// True/False (capitalised, matching the teams.csv convention).
+// Validates that CUIL is 11 digits and email looks valid before insertion.
+function readUsersCsv(): CsvUser[] | null {
+  if (!existsSync(USERS_CSV)) return null;
+  return parseCsv(readFileSync(USERS_CSV, 'utf8')).map((row) => {
+    const cuilDigits = (row.cuil ?? '').replace(/[-\s]/g, '');
+    if (!/^\d{11}$/.test(cuilDigits)) {
+      throw new Error(`users.csv: CUIL inválido para ${row.email}: ${row.cuil}`);
+    }
+    const cuilFormatted = `${cuilDigits.slice(0, 2)}-${cuilDigits.slice(2, 10)}-${cuilDigits.slice(10)}`;
+    const email = (row.email ?? '').trim().toLowerCase();
+    if (!email.includes('@')) {
+      throw new Error(`users.csv: email inválido: ${row.email}`);
+    }
+    const equipoRaw = (row.equipo ?? '').trim().toLowerCase();
+    return {
+      nombre: (row.nombre ?? '').trim(),
+      apellido: (row.apellido ?? '').trim(),
+      cuil: cuilFormatted,
+      email,
+      password: row.password ?? '',
+      equipo: equipoRaw.length === 0 ? null : equipoRaw,
+      isAdmin: (row.isAdmin ?? '').trim().toLowerCase() === 'true',
+    };
+  });
 }
 
 // Reads `matches.csv`. Knockout rows have empty `home_team_id` /
@@ -170,6 +217,61 @@ function orderIndexForMatch(stageId: number, matchNumber: number): number {
 // ============================================================================
 // SEED STEPS
 // ============================================================================
+
+// Upserts the payroll users from `docs/users.csv`. Idempotent:
+//   - matches existing rows by email; updates name/cuil/equipo/isAdmin.
+//   - never overwrites an existing user's password (so a user that already
+//     changed their initial password keeps it after a re-seed).
+//   - assigns `joinedRoundId` only on create, using the round currently
+//     active at seed time (rule 4.7).
+// Inputs: prisma client, parsed CSV rows. Output: counts of created vs
+// updated rows for the seed summary log.
+async function seedUsersFromCsv(
+  users: CsvUser[],
+): Promise<{ created: number; updated: number }> {
+  // Active round at the moment of seeding — used as joinedRound for new
+  // payroll members so they start scoring from the current matchday.
+  const now = new Date();
+  const activeRound = await prisma.tournamentRound.findFirst({
+    where: { startsAt: { lte: now } },
+    orderBy: { orderIndex: 'desc' },
+  });
+
+  let created = 0;
+  let updated = 0;
+  for (const u of users) {
+    const existing = await prisma.user.findUnique({ where: { email: u.email } });
+    if (existing) {
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          nombre: u.nombre,
+          apellido: u.apellido,
+          cuil: u.cuil,
+          equipo: u.equipo,
+          isAdmin: u.isAdmin,
+        },
+      });
+      updated += 1;
+    } else {
+      const passwordHash = await bcrypt.hash(u.password, 12);
+      await prisma.user.create({
+        data: {
+          nombre: u.nombre,
+          apellido: u.apellido,
+          cuil: u.cuil,
+          email: u.email,
+          equipo: u.equipo,
+          passwordHash,
+          isAdmin: u.isAdmin,
+          joinedRoundId: activeRound?.id ?? null,
+        },
+      });
+      created += 1;
+    }
+  }
+  return { created, updated };
+}
 
 // Upserts the admin user with the configured credentials. Idempotent.
 async function seedAdmin(): Promise<void> {
@@ -454,6 +556,18 @@ async function main(): Promise<void> {
     teamsCount = Object.values(PLACEHOLDER_TEAMS_BY_GROUP).flat().length;
   }
 
+  // Payroll users — runs after rounds exist so joinedRound resolves
+  // correctly. Missing CSV is fine: the admin can still create users
+  // manually from the admin panel.
+  const usersCsv = readUsersCsv();
+  let usersCreated = 0;
+  let usersUpdated = 0;
+  if (usersCsv && usersCsv.length > 0) {
+    const result = await seedUsersFromCsv(usersCsv);
+    usersCreated = result.created;
+    usersUpdated = result.updated;
+  }
+
   /* eslint-disable no-console */
   console.log('Seed completo.');
   console.log(`  Admin: ${ADMIN_EMAIL}`);
@@ -463,6 +577,11 @@ async function main(): Promise<void> {
     console.log(`  Partidos creados: ${createdMatches}`);
   } else {
     console.log('  Partidos: ya existen, no se modificaron.');
+  }
+  if (usersCsv) {
+    console.log(`  Usuarios nómina: ${usersCreated} creados, ${usersUpdated} actualizados.`);
+  } else {
+    console.log('  Usuarios nómina: docs/users.csv no encontrado, se omite.');
   }
   if (!usedCsv) {
     console.log('');
