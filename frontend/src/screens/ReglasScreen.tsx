@@ -54,7 +54,7 @@ const RULES: Rule[] = [
       'Se ordena por puntos de mayor a menor. Cada participante tiene una posición única (no se comparten puestos). En caso de empate en puntaje, se desempata por:\n1) Mayor cantidad de resultados exactos.\n2) Mayor cantidad de aciertos con diferencia de gol (predicciones de 5 o 7 puntos).\n3) Mayor cantidad de goles del equipo ganador en los partidos donde se acertó el ganador.',
   },
   {
-    title: '9. Premios por equipo',
+    title: '9. Competencia de equipos',
     body:
       'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pantalla de Torneo,la pestaña "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada (premio por fecha).\n• Total: ranking acumulado al final del torneo (premio al campeón por equipo).\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos). Los administradores y los usuarios sin equipo no cuentan.',
   },

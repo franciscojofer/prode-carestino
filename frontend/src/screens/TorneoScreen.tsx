@@ -133,74 +133,84 @@ function UserPositionCard({
   // would always show 0 / "—". Show the bare profile chip instead.
   const myRow = currentUserId === null ? null : standings.find((r) => r.userId === currentUserId);
 
-  // Grid template:
-  //   - Mobile: avatar (auto) + nombre (1fr) + puntos (auto). Equipo se
-  //     muestra como sub-línea bajo el nombre para no exigir ancho extra.
-  //   - Desktop con equipo: avatar (auto) + nombre (1fr) + equipo (1fr) +
-  //     puntos (auto). Nombre y equipo comparten el espacio en partes
-  //     iguales, por lo que el equipo queda visualmente centrado.
-  const showDesktopTeam = team && !isAdmin;
-  const gridCols = showDesktopTeam
-    ? 'grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto]'
-    : isAdmin
-      ? 'grid-cols-[auto_1fr]'
-      : 'grid-cols-[auto_1fr_auto]';
+  // Status / posición text rendered inside both layouts. Extracted as a
+  // const so the JSX below stays compact.
+  const positionBlock = isAdmin ? (
+    <>
+      <div className="text-xs font-semibold text-muted">Sesión activa</div>
+      <div className="text-sm font-bold text-ink truncate">{fullName}</div>
+    </>
+  ) : myRow ? (
+    <>
+      <div className="text-xs font-semibold text-muted">Tu posición</div>
+      <div className="text-sm font-bold text-ink truncate">
+        {myRow.position}° · {fullName}
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="text-xs font-semibold text-muted">Tu posición</div>
+      <div className="text-sm font-bold text-ink truncate">Sin partidos jugados</div>
+    </>
+  );
+
+  const avatar = (
+    <div className="shrink-0 rounded-full w-10 h-10 flex items-center justify-center font-bold bg-brand-orange-soft text-brand-orange">
+      {getInitials(fullName) || '—'}
+    </div>
+  );
+
+  const teamBlock = team ? (
+    <>
+      <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
+        Tu equipo
+      </div>
+      <div className="text-sm font-bold text-brand-orange uppercase truncate">
+        {team}
+      </div>
+    </>
+  ) : null;
+
+  const pointsBlock = !isAdmin ? (
+    <>
+      <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
+        Puntos
+      </div>
+      <div className="text-xl font-extrabold text-brand-orange">
+        {myRow?.totalPoints ?? 0}
+      </div>
+    </>
+  ) : null;
 
   return (
-    <Card className={`px-4 py-3 grid ${gridCols} items-center gap-3 shadow-sm`}>
-      <div className="rounded-full w-10 h-10 flex items-center justify-center font-bold bg-brand-orange-soft text-brand-orange">
-        {getInitials(fullName) || '—'}
-      </div>
-
-      <div className="min-w-0">
-        {isAdmin ? (
-          <>
-            <div className="text-xs font-semibold text-muted">Sesión activa</div>
-            <div className="text-sm font-bold text-ink truncate">{fullName}</div>
-          </>
-        ) : myRow ? (
-          <>
-            <div className="text-xs font-semibold text-muted">Tu posición</div>
-            <div className="text-sm font-bold text-ink truncate">
-              {myRow.position}° · {fullName}
+    <Card className="px-4 py-3 shadow-sm">
+      {/* Mobile layout: avatar + name (with equipo as sub-line) + points.
+          Stacks vertically when there is no room for a 3-column desktop
+          arrangement. */}
+      <div className="sm:hidden flex items-center gap-3">
+        {avatar}
+        <div className="flex-1 min-w-0">
+          {positionBlock}
+          {team && (
+            <div className="mt-0.5 text-[11px] font-semibold text-muted truncate">
+              Equipo: <span className="font-bold text-brand-orange uppercase">{team}</span>
             </div>
-          </>
-        ) : (
-          <>
-            <div className="text-xs font-semibold text-muted">Tu posición</div>
-            <div className="text-sm font-bold text-ink truncate">Sin partidos jugados</div>
-          </>
-        )}
-        {/* Mobile-only equipo line under the name. */}
-        {showDesktopTeam && (
-          <div className="sm:hidden mt-0.5 text-[11px] font-semibold text-muted truncate">
-            Equipo: <span className="font-bold text-brand-orange uppercase">{team}</span>
-          </div>
-        )}
+          )}
+        </div>
+        {pointsBlock && <div className="shrink-0 text-right">{pointsBlock}</div>}
       </div>
 
-      {/* Desktop-only centered equipo column. */}
-      {showDesktopTeam && (
-        <div className="hidden sm:block min-w-0 text-center">
-          <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
-            Tu equipo
-          </div>
-          <div className="text-sm font-bold text-brand-orange uppercase truncate">
-            {team}
-          </div>
+      {/* Desktop layout: three EQUAL columns so the centre column is
+          geometrically centred over the whole card (not just the gap
+          between name and points). */}
+      <div className="hidden sm:grid grid-cols-3 items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          {avatar}
+          <div className="min-w-0">{positionBlock}</div>
         </div>
-      )}
-
-      {!isAdmin && (
-        <div className="text-right">
-          <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
-            Puntos
-          </div>
-          <div className="text-xl font-extrabold text-brand-orange">
-            {myRow?.totalPoints ?? 0}
-          </div>
-        </div>
-      )}
+        <div className="text-center min-w-0">{teamBlock}</div>
+        <div className="text-right min-w-0">{pointsBlock}</div>
+      </div>
     </Card>
   );
 }
