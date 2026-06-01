@@ -1,4 +1,166 @@
 nombre,apellido,cuil,email,password,equipo,isAdmin
-Martin,Garcia,20-35123456-9,martin.garcia@carestino.com,Carestino2026,bi,False
-Lucia,Perez,27-32987654-3,lucia.perez@carestino.com,Carestino2026,compras,False
-Juan,Rodriguez,20-30111222-4,juan.rodriguez@carestino.com,Carestino2026,ssgg,False
+Juan Manuel,Ruiz Heide,20352454363,juanmanuel@biamer.com.ar,35245436,Contabilidad,False
+Ezequiel,Diez,20324214918,ezequieladriandiez@gmail.com,32421491,Logística 2,False
+Alejandro Oscar,Zarza,20347912167,ale.zeta01@gmail.com,34791216,Producto,False
+Diego Emanuel,Bianchi Soria,20359614579,dbianchisoria@gmail.com,35961457,I&T,False
+Gisela,Bianchi,27291224348,gisela@vancomex.com,29122434,Comex,False
+Sergio Ariel,Mazza,20279347146,Samsergioariel@gmail.com,27934714,Auditoría 2,False
+Lucas Matias,Rosales,20377807279,kakiro75@gmail.com,37780727,Logística 1,False
+Milagros Antonella,Orellana,27383264621,Orellanamilagros5@gmail.com,38326462,Tienda Quilmes,False
+Emiliano,Casella,20391073954,casellaemi4@gmail.com,39107395,Tienda Lomas de Zamora,False
+Damián Lucas,Gómez,20411079245,damianlucasg@gmail.com,41107924,Audiovisual,False
+Christian Ezequiel,Aguirre,20394705102,Chrisnoloveaguirre@gmail.com,39470510,Logística 1,False
+Esteban Gabriel,Fabra Ferreyra,20295436558,esteban.fabra1982@gmail.com,29543655,Auditoría 2,False
+Sebastian,Casella,20391073962,Heyseba4@gmail.com,39107396,Logística 1,False
+Patricia Elizabeth,Mamone,27342227991,mamonepatricia15@gmail.com,34222799,Auditoría 1,False
+Nelson Camilo,Patiño Cerro,20950402726,nelsoncamilopatino@gmail.com,95040272,Marketing,False
+Alan Mauro,Fernández,27381770953,Fernandezalan46@gmail.com,38177095,BT 1,False
+Alejandro Andres,Lopez,23346123419,alesucho@live.com,34612341,CC & Reclu 1,False
+Facundo Nicolas,Ponce,20399070482,facundoponce_10@hotmail.com,39907048,Auditoría 1,False
+Leonel Yair,Agis,23358552129,Leo_tala91@hotmail.com,35855212,Logística 2,False
+Jhon Orlando,Nogales Vasquez,20936201149,jhonnogales@gmail.com,93620114,Mantenimiento 1,False
+José María,Carnevale,20305347400,Josecarnevale73@gmail.com,30534740,SSGG 2,False
+Pablo,Calvo,20381256112,pablodcalvo@gmail.com,38125611,CC & Reclu 1,False
+Marcos Yakes,Cardozo,23367837659,marcosyakes@gmail.com,36783765,CC & Reclu 1,False
+Maximiliano,Villalba,20373504387,villalbamaximilianoariel@gmail.com,37350438,Logística 3,False
+Marcos Leonel,Canavesi,20376071910,canavesi.marcos@gmail.com,37607191,Comex,False
+Uriel Gaston Baido,Drago,20411047149,Urielbaido@hotmail.com,41104714,Tienda Recoleta,False
+Gastón Miguel,Ojeda,20330884291,gastonmiguel@live.com.ar,33088429,IT,False
+Agustín,Torti,23408479959,agustorti@hotmail.com,40847995,Tesorería,False
+Cristian David,Nogales,20380841720,cristiancito94.cn@gmail.com,38084172,Mantenimiento 1,False
+Ignacio,Ortiz,20408949840,ortizignacio205@gmail.com,40894984,Logística 3,False
+Joaquín Ezequiel,Méndez,20408578818,jemendez881@gmail.com,40857881,BI,False
+María Cecilia,Corvalán,27326989415,cecilia_corvalan@hotmail.com,32698941,Arte,False
+Daniel,Argondizzo,20295998920,danielargondizzo@gmail.com,29599892,Arte,False
+Agustin Mario,Dos Santos,20420386541,agustindossantosps4@gmail.com,42038654,Logística 3,False
+Gastón Alejandro,Fariña,20387080148,gastonfarina8@gmail.com,38708014,CC & Reclu 1,False
+Diego Nelson,Gutierrez,20245976772,diegonelgutierrez@hotmail.com,24597677,Tienda Córdoba,False
+Victoria,Presas,27423010350,presasvictoria99@gmail.com,42301035,Marketing,False
+Diego Martin,Gogorza,20324988905,dmgogorza@gmail.com,32498890,IT,False
+Natalia,Aceval,27373683936,aceval.natalia|@gmail.com,37368393,Aud y Procesos,False
+Carolina Belén,Romero Sironi,23348478834,carolinaromerosironi@gmail.com,34847883,ADP,False
+Alan Axel,Mori Delponte,20408786364,alan.mori.delponte@gmail.com,40878636,IT,False
+Miguel Andres,Armentano,20280709272,elpoli@gmail.com,28070927,IT,False
+Damián Esteban,Liuzzi Suarez,20403534804,damianliuzzi@gmail.com,40353480,CC & Reclu 2,False
+Joaquin,Evangelista,20396571820,evangelista.joaquin@gmail.com,39657182,SSGG 1,False
+Facundo Nicolás,Arce,20399080534,facuarce1996@gmail.com,39908053,BI,False
+Jonatan Maximiliano,Fernandez,20351560569,fernandezjonatan.m@gmail.com,35156056,Auditoría 2,False
+Juan Cruz,Marassa Kerulis,20396669847,juancruzmarassa@hotmail.com,39666984,Auditoría 1,False
+Sofia Milagros,Rizzonelli,27405356304,rizzonellisofia@gmail.com,40535630,Tienda Flores,False
+Franco,Lorenzo,20375197775,franco14lorenzo@gmail.com,37519777,IT,False
+Sebastian,Loray,20378954348,sebastianloray1@gmail.com,37895434,Logística 3,False
+Matias Nicolas,Labreñiuk,20424223892,matiaslabre2000@hotmail.com,42422389,BI,False
+Sebastián Pablo,Orejón,20429967466,sebastianorejon5@gmail.com,42996746,Tienda Recoleta,False
+Alan Jose,Bouza,20434480141,alanbouza4@gmail.com,43448014,Marketing,False
+Franco Manuel,Ottaviani,20412713673,francoo.otta@gmail.com,41271367,BT 2,False
+Candela Victoria,Garnero,27438131103,candeindia51214@gmail.com,43813110,Tienda Córdoba,False
+Emanuel Raúl,Alvarez,20366577336,emanuelalvarez@hotmail.com.ar,36657733,Tienda Rosario,False
+Rodrigo Ariel,Caruso,20405383498,rodrigo.caruso14@gmail.com,40538349,Aud y Procesos,False
+Maria Paula Micaela,Rosales,27412725471,mapaula_98@outlook.es,41272547,Auditoría 1,False
+Nicolas Martin,De Luca,20402416476,nicodeluca23@gmail.com,40241647,Marketing,False
+Leonel Andrés,Cascino,20372560534,leonelcascino@gmail.com,37256053,Comex,False
+Guido Joel,Pepe,20412915624,Guidopepe99@gmail.com,41291562,Logística 1,False
+Daniel,Dos Santos,20425654722,danieldossantos844@gmail.com,42565472,Logística 3,False
+Alvis Osmer,Oramas Martin,27961643606,martinalvis24@gmail.com,96164360,Tienda Martínez,False
+Cristian Emmanuel,Natale,20357619387,cris.natale@hotmail.com,35761938,Aud y Procesos,False
+Estanislao Gabriel,Tamiozzo,20378185956,tamiozzoestanislao@gmail.com,37818595,Arte,False
+Francisco Jose,Fernandez,20417972405,franciscojofer@gmail.com,41797240,I&T,False
+Ezequiel Martin,Fernandez,20396560810,ezequielm.fernandez@hotmail.com,39656081,Contabilidad,False
+Tobías,Bello,20410505542,bellotobias98@gmail.com,41050554,Marketing,False
+Federico,Kischner,20403991539,federicokischner@carestino.com,40399153,Planeamiento,False
+Graciela Magali,Franco,27433226874,magufranco1@gmail.com,43322687,Marketing,False
+Ian Sebastián,Guffanti,20433262337,Guffantiian@gmail.com,43326233,Mantenimiento 1,False
+Agustina Candela,Fanelli,27418533973,fanelliagustina99@gmail.com,41853397,Impuestos,False
+Agustín,Attina,20430493087,aguslp072@gmail.com,43049308,Logística 3,False
+Juliana,Cornet,27428776858,julicornet@hotmail.com,42877685,Prensa,False
+Ana Paula,Schiano Moriello,27446788170,schianoanapaula@gmail.com,44678817,Logística 2,False
+Brenda,Couselo,27395562423,brendacouselo96@hotmail.com,39556242,Arquitectura,False
+Nicolas Nahuel,Pignatelli,20405493358,pignatelli.nicolas@gmail.com,40549335,SSGG 1,False
+Sofía Aldana,Serrano,27426634525,serranosofia2406@gmail.com,42663452,Auditoría 1,False
+Matias,Bruzzone,20420776587,matibruzz@gmail.com,42077658,BI,False
+Alejo Matías,Allegri,20426431794,alge2000@gmail.com,42643179,Planeamiento,False
+Maximiliano,Richard,20434424942,maximilianorichard.mr@outlook.com,43442494,Planeamiento,False
+Franco,Valenzuela,20384529209,francov1994@gmail.com,38452920,SSGG 1,False
+Ignacio,Peña,20417575368,nachopenia99@gmail.com,41757536,ADP,False
+Juan Pablo,Ayala,20374470346,lozziajuan@gmail.com,37447034,Tienda Rosario,False
+Emiliano Salvador,Salinas Brunetti,20435220941,brunettiemilianosal@gmail.com,43522094,Tienda Morón,False
+Lucio Nicolás,Galante Maldonado,20375381150,lgalantemaldonado@gmail.com,37538115,Prensa,False
+Franco Nicolas,Gutierrez,20454301103,fran78656@gmail.com,45430110,Tienda Martínez,False
+Bautista,Cerrato,20429483353,bautista.cerrato.08@gmail.com,42948335,Auditoría 2,False
+Diego Martín,Spano,20440518991,diegospano254@gmail.com,44051899,Tesorería,False
+Josué Simón,Sotelo,23388532459,el.josu.93@gmail.com,38853245,SSGG 2,False
+Alan Emanuel,Juarez,20380581877,alanemanueljuarez@gmail.com,38058187,SSGG 2,False
+Mauricio Leonel,Reinhardt,20431803144,mauricioreinhardt@hotmail.com,43180314,BT 1,False
+Ivo Nahuel,Alegre,20397891845,Alegre.ivo@gmail.com,39789184,Mantenimiento 1,False
+Thiago Martin,Cabrera Lavezzi,20439888874,thiagomartincabreralavezzi@gmail.com,43988887,BT 2,False
+Joaquín,Fernández,20422041878,joaco.fernandez.2212@gmail.com,42204187,BT 2,False
+Facundo Daniel,Rodriguez Menicheli,20411723292,rodriguezfacundo1998@gmail.com,41172329,CC & Reclu 2,False
+Gabriel,Ybañez,20430829247,gabrieljoaquinybanez@gmail.com,43082924,Tienda Nuñez,False
+Miguel Esteban,Panduro Ames,23959836469,miguelpandur0001@gmail.com,95983646,Tienda Recoleta,False
+Damian Ezequiel,Radice,20361679882,damyradice@gmail.com,36167988,Audiovisual,False
+Constanza,Castro Vidal,27445940408,Constanzacastrovidal@gmail.com,44594040,Logística 2,False
+Emanuel,Ocampo,20417038729,emanuel.jocampo@gmail.com,41703872,Prensa,False
+Leonel,Barone,20405784018,leonelbarone@gmail.com,40578401,Logística 2,False
+Gabriel Alexis,Gomez Fernandez,20348541405,Gagofer25@gmail.com,34854140,Tienda Mendoza,False
+Sergio Ezequiel,Gutiérrez Santillán,20430936264,sergio.gitarr.00@gmail.com,43093626,Logística 1,False
+Mariano Rafael,Fernandez,20407191324,marianorafael99@gmail.com,40719132,ADP,False
+Luca,Bassi,20423538520,bassiluca01@gmail.com,42353852,Tienda Lomas de Zamora,False
+Thomas,Moreno,20457869348,thomimoreno8@gmail.com,45786934,Tienda Nuñez,False
+Juan José,Sotelo,20451995759,Sotelojuan003@gmail.com,45199575,Tienda Quilmes,False
+Enzo Uriel,Gonzalez,20435128271,Uriel20012017@gmail.com,43512827,Tienda Recoleta,False
+Nicolas Agustin,Chavez Epelde,20407549067,nicolas.chavezepelde@gmail.com,40754906,BI,False
+Nicolas Ezequiel,Gauna,20351476983,Nikolasgauna@hotmail.com,35147698,Mantenimiento 2,False
+Ivan Matias,Oviedo,20359951311,i-oviedo@hotmail.com,35995131,Logística 2,False
+Nelson Joaquín,Mansilla,20421728586,joacomansilla.18@gmail.com,42172858,Tienda Tucuman,False
+Gonzalo Andres,Soler,23315074509,soler.gonzalo@gmail.com,31507450,Audiovisual,False
+Oscar Antonio,Castro,20314322852,Oscarlar1985@gmail.com,31432285,Tienda Mendoza,False
+Faustina,Fernández Miranda,27470837638,faustinafdz@gmail.com,47083763,Contabilidad,False
+Lucas Ezequiel,Hernandez,20437272345,Lucashernandez851@gmail.com,43727234,Tienda Balvanera,False
+Juan Ignacio,Mosqueda,20447234212,j.ignaciomosqueda@gmail.com,44723421,Tienda Lomas de Zamora,False
+Martin,Horn,23429496829,martin.horn2014@gmail.com,42949682,BT 2,False
+Bruno,Baudano,20341676658,brunobaudano@gmail.com,34167665,Tienda Tucuman,False
+Tomas Facundo,Michelli,20406776450,Tomas_mi97@live.com.ar,40677645,Tienda Córdoba,False
+Federico Luis,Galardi,20393387786,fede.gala95@gmail.com,39338778,Audiovisual,False
+Federico Nahuel,Valde Pujol,20458082872,federicovalde1@gmail.com,45808287,Tienda Flores,False
+Sofía Victoria,Laizerowitch,27398212326,sofivlaize@gmail.com,39821232,Arquitectura,False
+Wanda Iris,Calvo,27404275629,wandairiscalvo@gmail.com,40427562,Contabilidad,False
+Iara,Diez,27429428101,dieziara@hotmail.com,42942810,Tesorería,False
+Juan martin,Zambrano,20445955176,zambranojmz@gmail.com,44595517,SSGG 1,False
+Indiana Mariel,Costantini,27442327365,Indianacostantini24@gmail.com,44232736,Tienda Rosario,False
+German Fabian,Rodriguez,20409413316,germanrod01@gmail.com,40941331,Tienda Córdoba,False
+Jonathan,Yujra Chaparro,20945422360,Jonathanyujra.ch@gmail.com,94542236,I&T,False
+Rodrigo Sebastián,Del Vecchio,20435847995,rodrigo.sdelvecchio@gmail.com,43584799,Impuestos,False
+Juan Roman,Gorbaran,20449323549,juanromangorbaran@gmail.com ,44932354,Tienda Quilmes,False
+Pablo Daniel,Montenegro,20386310441,pablomtgro@gmail.com,38631044,Comex,False
+Agustín Mateo,Suarez,20447133629,agussuarez2502@gmail.com,44713362,Tesorería,False
+Cristian Gonzalo,Loza,20442864293,Cristian.g.loza@gmail.com,44286429,Tienda Flores,False
+Santiago Agustín,Lo Russo,20476988641,santilorusso07@gmail.com,47698864,Aud y Procesos,False
+Juan José,Bandeo,20395872037,juanbandeo1@gmail.com,39587203,Logística 1,False
+Malena,Gomez Mendez ,27421939867,malegm99@gmail.com,42193986,SSGG 2,False
+Lourdes Antonella,Niccolai,27474827904,lulyniccolai@gmail.com,47482790,Tienda Lomas de Zamora,False
+Tomas Valentin,Perez,20423537109,ptomas669@gmail.com,42353710,Tienda Balvanera,False
+Nazarena Noemi,Logambino,27415853403,nazalogambino@gmail.com,41585340,Arquitectura,False
+Vera,Urbinati,23457785364,veraurbinati04@gmail.com,45778536,Tesorería,False
+Carolina Paola,Mimura,27428222348,caritomimu@gmail.com,42822234,Arte,False
+Ezequiel Maximiliano,Fichera,20426498937,eze.fichera@hotmail.com,42649893,CC & Reclu 2,False
+Agustin,Ospital,20435739882,agus.ospi@gmail.com,43573988,BT 1,False
+Joel Janice,Escobar,20386661473,joel.j.escobar@outlook.com,38666147,Tienda Martínez,False
+Mateo Nehuel,Cortella,20465848449,mcortella.cv@gmail.com,46584844,Tienda Balvanera,False
+Elias Tomas,Estelles,20407610645,Eliastestelles@gmail.com,40761064,Tienda Morón,False
+Brandon Ezequiel,Oliva,20415524049,brandonoliva118@gmail.com,41552404,CC & Reclu 2,False
+Giuliana,Vivona,27448376511,giulivivona@gmail.com,44837651,Impuestos,False
+Franco Gastón,Pachado,20386553271,Franco.pachado@hotmail.com,38655327,Tienda Tucuman,False
+Gianluca,Mortilla,20401190997,gianmortilla@gmail.com,40119099,Tienda Rosario,False
+Miqueas Joaquin,Meza,20429440719,joaquinmeza72@gmail.com,42944071,Tienda Martínez,False
+Renzo Fernando,Kam Bernabe,20440092145,renzokam22@gmail.com,44009214,Tienda Mendoza,False
+Melanie Mercedes,Panacual Mendez,27961104845,panacualm519@gmail.com,96110484,Tienda Nuñez,False
+Alexandro,Choque Romero,20474907563,alexandro.choque.et7@gmail.com,47490756,Tienda Flores,False
+Aylén Lucía,Centurión,27404777888,aylenlcenturion@gmail.com,40477788,Producto,False
+Matias Leonel,Marquez,20420377259,matiasleonel629@gmail.com,42037725,Tienda Morón,False
+Luciano Federico,Maieru Beaudean,20439188260,maieruluciano@gmail.com,43918826,Mantenimiento 2,False
+Matias Ezequiel,Leal,20382716737,matidanidante2022@gmail.com,38271673,Mantenimiento 2,False
+Julian,Gomez,20427236960,platense.juliang@gmail.com,42723696,Tienda Morón,False
+Nicolás Emmanuel,Pardo Rodriguez,20928230571,nicolaspar@gmail.com,92823057,IT,False
+Julio Cesar Osvaldo,Contrera,20286612807,contrerajuliocesar100@gmail.com,28661280,Mantenimiento 2,False
+Andres,Mertens,20287690623,andres@vancomex.com,28769062,BT,False
+Vanina,Bianchi,27302363701,vanina@vancomex.com,30236370,Producto,False
