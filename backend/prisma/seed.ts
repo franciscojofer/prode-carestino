@@ -65,15 +65,23 @@ const STAGE_TO_ORDER: Record<number, number> = {
 
 // FIFA code → flag emoji. Covers every team that appears in teams.csv,
 // including the six play-off winners decided in March 2026.
+//
+// England, Scotland and Wales use the Unicode "Tags" sequence (RGI region
+// flag) — written here with explicit `\u{...}` escapes because the
+// invisible tag characters tend to get stripped on copy-paste and the
+// flag silently degrades to the plain black flag (🏴).
+const ENG_FLAG = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
+const SCO_FLAG = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}';
+
 const FLAG_BY_CODE: Record<string, string> = {
   ARG: '🇦🇷', ALG: '🇩🇿', AUS: '🇦🇺', AUT: '🇦🇹', BEL: '🇧🇪',
   BIH: '🇧🇦', BRA: '🇧🇷', CAN: '🇨🇦', CIV: '🇨🇮', COD: '🇨🇩',
   COL: '🇨🇴', CPV: '🇨🇻', CRO: '🇭🇷', CUR: '🇨🇼', CZE: '🇨🇿',
-  ECU: '🇪🇨', EGY: '🇪🇬', ENG: '🏴', ESP: '🇪🇸', FRA: '🇫🇷',
+  ECU: '🇪🇨', EGY: '🇪🇬', ENG: ENG_FLAG, ESP: '🇪🇸', FRA: '🇫🇷',
   GER: '🇩🇪', GHA: '🇬🇭', HAI: '🇭🇹', IRN: '🇮🇷', IRQ: '🇮🇶',
   JOR: '🇯🇴', JPN: '🇯🇵', KOR: '🇰🇷', KSA: '🇸🇦', MAR: '🇲🇦',
   MEX: '🇲🇽', NED: '🇳🇱', NOR: '🇳🇴', NZL: '🇳🇿', PAN: '🇵🇦',
-  PAR: '🇵🇾', POR: '🇵🇹', QAT: '🇶🇦', RSA: '🇿🇦', SCO: '🏴',
+  PAR: '🇵🇾', POR: '🇵🇹', QAT: '🇶🇦', RSA: '🇿🇦', SCO: SCO_FLAG,
   SEN: '🇸🇳', SUI: '🇨🇭', SWE: '🇸🇪', TUN: '🇹🇳', TUR: '🇹🇷',
   URU: '🇺🇾', USA: '🇺🇸', UZB: '🇺🇿',
 };
