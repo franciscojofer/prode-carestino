@@ -78,7 +78,7 @@ export function LoginScreen() {
         <Field
           label="Email"
           type="email"
-          placeholder="tu.email@carestino.com"
+          placeholder="Tu email personal"
           autoComplete="username"
           error={form.formState.errors.email?.message}
           {...form.register('email')}

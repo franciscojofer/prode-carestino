@@ -24,14 +24,14 @@ const RULES: Rule[] = [
       '• 7 puntos por acertar ganador y resultado exacto.\n• 5 puntos por acertar ganador y diferencia de gol.\n• 3 puntos por acertar solo el ganador.\n• 0 puntos en cualquier otro caso.',
   },
   {
-    title: '3. Resultado que cuenta',
+    title: '3. Resultado en fase de grupos',
     body:
-      'Se toma el marcador al terminar los 90 minutos + adicional. En eliminatorias, los 120 minutos. Los penales NO cuentan para el resultado.',
+      'Se toma el marcador al terminar los 90 minutos + adicional.',
   },
   {
-    title: '4. Eliminatorias',
+    title: '4. Resultado en eliminatorias',
     body:
-      'En playoffs podés predecir empate. Se toma siempre el resultado al minuto 120: si el partido se define por penales, esos goles no cuentan. Las predicciones se puntúan con las mismas reglas que la fase de grupos.',
+      'Se toma el marcador al minuto 120: si el partido se define por penales, esos goles no cuentan. Las predicciones se puntúan con las mismas reglas que la fase de grupos.',
   },
   {
     title: '5. Partidos postergados',
@@ -56,7 +56,7 @@ const RULES: Rule[] = [
   {
     title: '9. Premios por equipo',
     body:
-      'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pestaña Torneo, el slider "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada (premio por fecha).\n• Total: ranking acumulado al final del torneo (premio al campeón por equipo).\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos). Los administradores y los usuarios sin equipo no cuentan.',
+      'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pantalla de Torneo,la pestaña "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada (premio por fecha).\n• Total: ranking acumulado al final del torneo (premio al campeón por equipo).\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos). Los administradores y los usuarios sin equipo no cuentan.',
   },
 ];
 

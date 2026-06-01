@@ -14,6 +14,8 @@ export type AuthUser = {
   nombre: string;
   apellido: string;
   email: string;
+  // Work-team label, or null when no equipo is assigned (e.g. admins).
+  equipo: string | null;
   isAdmin: boolean;
 };
 

@@ -52,7 +52,7 @@ export function TorneoScreen() {
       </div>
 
       {view === 'individual' ? (
-        <IndividualView userId={user?.id ?? null} userName={user ? `${user.nombre} ${user.apellido}` : ''} isAdmin={user?.isAdmin ?? false} />
+        <IndividualView userId={user?.id ?? null} userName={user ? `${user.nombre} ${user.apellido}` : ''} userTeam={user?.equipo ?? null} isAdmin={user?.isAdmin ?? false} />
       ) : (
         <TeamsView />
       )}
@@ -67,10 +67,11 @@ export function TorneoScreen() {
 type IndividualViewProps = {
   userId: number | null;
   userName: string;
+  userTeam: string | null;
   isAdmin: boolean;
 };
 
-function IndividualView({ userId, userName, isAdmin }: IndividualViewProps) {
+function IndividualView({ userId, userName, userTeam, isAdmin }: IndividualViewProps) {
   const standings = useStandings();
 
   return (
@@ -78,6 +79,7 @@ function IndividualView({ userId, userName, isAdmin }: IndividualViewProps) {
       <div className="px-4 mb-3">
         <UserPositionCard
           fullName={userName}
+          team={userTeam}
           standings={standings.data ?? []}
           currentUserId={userId}
           isAdmin={isAdmin}
@@ -114,6 +116,7 @@ function IndividualView({ userId, userName, isAdmin }: IndividualViewProps) {
 
 type UserPositionCardProps = {
   fullName: string;
+  team: string | null;
   standings: StandingsRow[];
   currentUserId: number | null;
   isAdmin: boolean;
@@ -121,6 +124,7 @@ type UserPositionCardProps = {
 
 function UserPositionCard({
   fullName,
+  team,
   standings,
   currentUserId,
   isAdmin,
@@ -131,7 +135,7 @@ function UserPositionCard({
 
   return (
     <Card className="px-4 py-3 flex items-center gap-3 shadow-sm">
-      <div className="rounded-full w-10 h-10 flex items-center justify-center font-bold bg-brand-orange-soft text-brand-orange">
+      <div className="shrink-0 rounded-full w-10 h-10 flex items-center justify-center font-bold bg-brand-orange-soft text-brand-orange">
         {getInitials(fullName) || '—'}
       </div>
       <div className="flex-1 min-w-0">
@@ -153,9 +157,27 @@ function UserPositionCard({
             <div className="text-sm font-bold text-ink truncate">Sin partidos jugados</div>
           </>
         )}
+        {/* Mobile-only equipo line: stacks under the name to save horizontal
+            space on narrow screens. */}
+        {team && (
+          <div className="sm:hidden mt-0.5 text-[11px] font-semibold text-muted truncate">
+            Equipo: <span className="font-bold text-brand-orange uppercase">{team}</span>
+          </div>
+        )}
       </div>
+      {/* Desktop-only centered equipo block, matching the wide layout. */}
+      {team && (
+        <div className="hidden sm:block flex-1 min-w-0 text-center">
+          <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
+            Tu equipo
+          </div>
+          <div className="text-sm font-bold text-brand-orange uppercase truncate">
+            {team}
+          </div>
+        </div>
+      )}
       {!isAdmin && (
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <div className="text-[10px] uppercase tracking-wider font-bold text-muted">
             Puntos
           </div>
