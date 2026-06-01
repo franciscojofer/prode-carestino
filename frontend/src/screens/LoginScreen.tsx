@@ -107,9 +107,6 @@ export function LoginScreen() {
           </Button>
         </div>
 
-        <div className="mt-2 text-[11px] text-center text-muted">
-          Si olvidaste tu contraseña, contactá al admin.
-        </div>
 
         <a
           href={SUPPORT_WHATSAPP_URL}
@@ -117,7 +114,7 @@ export function LoginScreen() {
           rel="noopener noreferrer"
           className="text-[11px] text-center font-semibold text-brand-orange"
         >
-          Ante dudas, contactanos por WhatsApp
+          Si necesitas ayuda, hace click y contactanos por WhatsApp.
         </a>
       </form>
 
