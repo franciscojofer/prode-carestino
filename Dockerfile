@@ -46,7 +46,10 @@ COPY backend/ ./
 FROM node:20-alpine AS runtime
 
 # OpenSSL is required by the Prisma engines bundled with the client.
-RUN apk add --no-cache openssl
+# `sqlite` ships the `sqlite3` CLI used by the nightly backup cron on the
+# host (`/etc/cron.d/prode-db-backup`) — it calls `.backup` to take an
+# atomic snapshot of /data/prode.db before piping it to S3.
+RUN apk add --no-cache openssl sqlite
 
 WORKDIR /app
 
