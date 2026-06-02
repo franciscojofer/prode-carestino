@@ -56,7 +56,7 @@ const RULES: Rule[] = [
   {
     title: '9. Competencia de equipos',
     body:
-      'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pantalla de Torneo, la pestaña "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada.\n• Total: ranking acumulado al final del torneo.\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos). Los administradores y los usuarios sin equipo no cuentan.',
+      'Cada participante pertenece a un equipo de trabajo (ej: BI, Compras, SSGG). En la pantalla de Torneo, la pestaña "Equipos" muestra dos tablas:\n• Por fecha: ranking de equipos en cada jornada.\n• Total: ranking acumulado al final del torneo.\nEl puntaje de un equipo es el promedio de puntos de sus integrantes activos (puntos totales del equipo dividido la cantidad de miembros activos).',
   },
 ];
 
