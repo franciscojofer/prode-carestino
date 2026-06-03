@@ -29,7 +29,7 @@ export function Header({ title, showBack, onBack, adminBadge }: Props) {
           <ArrowLeft size={22} />
         </button>
       ) : (
-        <Logo size={32} />
+        <Logo size={37} />
       )}
       <div className="flex-1 min-w-0">
         <div className="text-[10px] tracking-[0.18em] opacity-80 font-semibold">

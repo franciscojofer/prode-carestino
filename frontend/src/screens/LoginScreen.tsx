@@ -63,7 +63,7 @@ export function LoginScreen() {
   return (
     <div className="flex flex-col min-h-screen bg-surface">
       <div className="pt-12 pb-10 px-6 flex flex-col items-center bg-brand-orange text-white">
-        <Logo size={56} />
+        <Logo size={64} />
         <div className="mt-3 text-[10px] tracking-[0.22em] opacity-90 font-semibold">
           PRODE CARESTINO
         </div>
