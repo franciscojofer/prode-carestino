@@ -383,6 +383,7 @@ function TeamStandingsTable({ rows }: TeamStandingsTableProps) {
       <div className="grid grid-cols-12 px-3 py-2.5 text-[10px] font-bold tracking-wider text-muted bg-surface-alt">
         <div className="col-span-1">#</div>
         <div className="col-span-5">EQUIPO</div>
+        <div className="col-span-2 text-right">MIEMBROS</div>
         <div className="col-span-2 text-right">PUNTOS</div>
         <div className="col-span-2 text-right">PROMEDIO</div>
       </div>
