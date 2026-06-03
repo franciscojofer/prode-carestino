@@ -19,6 +19,9 @@ export type AuthUser = {
   apellido: string;
   email: string;
   isAdmin: boolean;
+  // Work-team label. Null when the user has not been assigned to any
+  // equipo yet (legacy accounts and admins typically have no equipo).
+  equipo: string | null;
 };
 
 // Authenticates an existing user. Applies the lockout policy before and
@@ -51,5 +54,6 @@ export async function loginUser(prisma: Prisma, input: LoginInput): Promise<Auth
     apellido: user.apellido,
     email: user.email,
     isAdmin: user.isAdmin,
+    equipo: user.equipo,
   };
 }
