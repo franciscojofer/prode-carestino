@@ -7,7 +7,7 @@
 // Role: Bound to /torneo behind ProtectedRoute.
 
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Card } from '../components/Card';
 import { SegmentedControl } from '../components/SegmentedControl';
@@ -368,6 +368,10 @@ function TeamsView() {
 type TeamStandingsTableProps = { rows: TeamStandingsRow[] };
 
 function TeamStandingsTable({ rows }: TeamStandingsTableProps) {
+  // Equipo whose roster is currently expanded, or null when all collapsed.
+  // Only one team is open at a time to keep the table compact.
+  const [expanded, setExpanded] = useState<string | null>(null);
+
   if (rows.length === 0) {
     return (
       <Card>
@@ -387,21 +391,56 @@ function TeamStandingsTable({ rows }: TeamStandingsTableProps) {
         <div className="col-span-2 text-right">PUNTOS</div>
         <div className="col-span-2 text-right">PROMEDIO</div>
       </div>
-      {rows.map((row, i) => (
-        <div
-          key={row.equipo}
-          className={`grid grid-cols-12 px-3 py-3 text-sm items-center text-ink font-medium ${i === 0 ? '' : 'border-t'
-            }`}
-        >
-          <div className="col-span-1 font-bold">{row.position}</div>
-          <div className="col-span-5 uppercase truncate">{row.equipo}</div>
-          <div className="col-span-2 text-right">{row.members}</div>
-          <div className="col-span-2 text-right">{row.totalPoints}</div>
-          <div className="col-span-2 text-right font-extrabold text-brand-orange">
-            {row.averagePoints.toFixed(1)}
+      {rows.map((row, i) => {
+        const isOpen = expanded === row.equipo;
+        return (
+          <div key={row.equipo} className={i === 0 ? '' : 'border-t'}>
+            <button
+              type="button"
+              onClick={() => setExpanded(isOpen ? null : row.equipo)}
+              aria-expanded={isOpen}
+              className={`w-full grid grid-cols-12 px-3 py-3 text-sm items-center text-ink font-medium text-left ${isOpen ? 'bg-brand-orange-soft' : ''
+                }`}
+            >
+              <div className="col-span-1 font-bold">{row.position}</div>
+              <div className="col-span-5 flex items-center gap-1 min-w-0">
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 text-muted transition-transform ${isOpen ? 'rotate-180' : ''
+                    }`}
+                />
+                <span className="uppercase truncate">{row.equipo}</span>
+              </div>
+              <div className="col-span-2 text-right">{row.members}</div>
+              <div className="col-span-2 text-right">{row.totalPoints}</div>
+              <div className="col-span-2 text-right font-extrabold text-brand-orange">
+                {row.averagePoints.toFixed(1)}
+              </div>
+            </button>
+
+            {isOpen && (
+              <div className="bg-surface-alt">
+                {row.roster.length === 0 ? (
+                  <div className="px-3 py-3 text-xs text-muted">
+                    Sin miembros con puntos cargados.
+                  </div>
+                ) : (
+                  row.roster.map((m) => (
+                    <div
+                      key={m.userId}
+                      className="grid grid-cols-12 px-3 py-2 text-xs items-center text-ink border-t border-surface"
+                    >
+                      <div className="col-span-1" />
+                      <div className="col-span-9 truncate text-muted">{m.name}</div>
+                      <div className="col-span-2 text-right font-bold">{m.points}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </Card>
   );
 }

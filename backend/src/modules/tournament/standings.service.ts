@@ -157,14 +157,25 @@ async function computeStandings(prisma: Prisma): Promise<StandingsRow[]> {
 const TEAM_STANDINGS_CACHE_KEY = 'tournament:team-standings';
 const TEAM_STANDINGS_TTL_MS = 5_000;
 
+// A single equipo member with the points they contribute within the scope
+// (a given round or the overall total). Surfaced so the frontend can expand
+// a team row and show who makes up its total.
+export type TeamMember = {
+  userId: number;
+  name: string;
+  points: number;
+};
+
 // Public types returned by `getTeamStandings`. `members` is the count of
-// active users in the equipo (the denominator of the average).
+// active users in the equipo (the denominator of the average); `roster` is
+// the per-member breakdown of `totalPoints`, sorted highest-first.
 export type TeamStandingsRow = {
   position: number;
   equipo: string;
   members: number;
   totalPoints: number;
   averagePoints: number;
+  roster: TeamMember[];
 };
 
 export type TeamRoundStandings = {
@@ -202,6 +213,8 @@ async function computeTeamStandings(prisma: Prisma): Promise<TeamStandingsResult
       where: { isActive: true, isAdmin: false, equipo: { not: null } },
       select: {
         id: true,
+        nombre: true,
+        apellido: true,
         equipo: true,
         joinedRound: { select: { orderIndex: true } },
         predictions: {
@@ -223,45 +236,61 @@ async function computeTeamStandings(prisma: Prisma): Promise<TeamStandingsResult
     }),
   ]);
 
-  // Members per equipo — the denominator of every average for that equipo,
-  // regardless of round (the denominator is constant: it reflects current
-  // active membership, not who had submitted predictions yet).
+  // Per-user metadata (display name + equipo) used to build each team's
+  // roster, plus the members-per-equipo count that is the denominator of
+  // every average (constant across rounds: it reflects current active
+  // membership, not who had submitted predictions yet).
+  const userInfo = new Map<number, { name: string; equipo: string }>();
   const membersByEquipo = new Map<string, number>();
   for (const u of users) {
     const e = u.equipo;
     if (!e) continue;
     membersByEquipo.set(e, (membersByEquipo.get(e) ?? 0) + 1);
+    userInfo.set(u.id, { name: `${u.nombre} ${u.apellido}`.trim(), equipo: e });
   }
 
-  // Aggregate points: total per (round, equipo) and grand total per equipo.
-  // `joinedRound` filtering matches the individual leaderboard so a user
-  // who joined mid-tournament does not contribute earlier rounds.
-  const totalByEquipo = new Map<string, number>();
-  // Outer key: roundId; inner key: equipo. Avoids string concatenation keys.
-  const byRound = new Map<number, Map<string, number>>();
+  // Aggregate points per user: grand total and per-round. Team totals are
+  // derived from these so the per-member roster always sums to the team's
+  // total. `joinedRound` filtering matches the individual leaderboard so a
+  // user who joined mid-tournament does not contribute earlier rounds.
+  const totalByUser = new Map<number, number>();
+  // Outer key: roundId; inner key: userId.
+  const byRoundByUser = new Map<number, Map<number, number>>();
   for (const u of users) {
-    const equipo = u.equipo;
-    if (!equipo) continue;
+    if (!u.equipo) continue;
     const joinedOrder = u.joinedRound?.orderIndex ?? -Infinity;
     for (const pred of u.predictions) {
       const round = pred.match.countsForRound;
       if (round.orderIndex < joinedOrder) continue;
-      totalByEquipo.set(equipo, (totalByEquipo.get(equipo) ?? 0) + pred.pointsAwarded);
-      const inner = byRound.get(round.id) ?? new Map<string, number>();
-      inner.set(equipo, (inner.get(equipo) ?? 0) + pred.pointsAwarded);
-      byRound.set(round.id, inner);
+      totalByUser.set(u.id, (totalByUser.get(u.id) ?? 0) + pred.pointsAwarded);
+      const inner = byRoundByUser.get(round.id) ?? new Map<number, number>();
+      inner.set(u.id, (inner.get(u.id) ?? 0) + pred.pointsAwarded);
+      byRoundByUser.set(round.id, inner);
     }
   }
 
-  // Builds a sorted, ranked TeamStandingsRow[] for the given (equipo →
-  // points) map. Equipos with no points still appear (so the admin can see
-  // 0-point teams in early rounds).
-  function buildRows(pointsByEquipo: Map<string, number>): TeamStandingsRow[] {
+  // Builds a sorted, ranked TeamStandingsRow[] for the given (userId →
+  // points) map. Every active member appears in the roster (0 points if they
+  // contributed nothing in scope), and equipos with no points still appear
+  // (so the admin can see 0-point teams in early rounds).
+  function buildRows(pointsByUser: Map<number, number>): TeamStandingsRow[] {
+    // Group members under their equipo, carrying their in-scope points.
+    const rosterByEquipo = new Map<string, TeamMember[]>();
+    for (const [userId, info] of userInfo) {
+      const list = rosterByEquipo.get(info.equipo) ?? [];
+      list.push({ userId, name: info.name, points: pointsByUser.get(userId) ?? 0 });
+      rosterByEquipo.set(info.equipo, list);
+    }
+
     const rows: Omit<TeamStandingsRow, 'position'>[] = [];
     for (const [equipo, members] of membersByEquipo) {
-      const totalPoints = pointsByEquipo.get(equipo) ?? 0;
+      const roster = (rosterByEquipo.get(equipo) ?? []).sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        return a.name.localeCompare(b.name, 'es-AR');
+      });
+      const totalPoints = roster.reduce((sum, m) => sum + m.points, 0);
       const averagePoints = members === 0 ? 0 : totalPoints / members;
-      rows.push({ equipo, members, totalPoints, averagePoints });
+      rows.push({ equipo, members, totalPoints, averagePoints, roster });
     }
     rows.sort((a, b) => {
       if (b.averagePoints !== a.averagePoints) return b.averagePoints - a.averagePoints;
@@ -275,10 +304,10 @@ async function computeTeamStandings(prisma: Prisma): Promise<TeamStandingsResult
     roundId: r.id,
     roundName: r.name,
     orderIndex: r.orderIndex,
-    teams: buildRows(byRound.get(r.id) ?? new Map()),
+    teams: buildRows(byRoundByUser.get(r.id) ?? new Map()),
   }));
 
-  const totalResult = buildRows(totalByEquipo);
+  const totalResult = buildRows(totalByUser);
 
   return { byRound: byRoundResult, total: totalResult };
 }

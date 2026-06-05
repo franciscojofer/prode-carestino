@@ -52,14 +52,24 @@ export type GroupTable = {
   teams: GroupTeam[];
 };
 
+// A single equipo member with the points they contribute within the scope
+// (a given round or the overall total). Used to expand a team row.
+export type TeamMember = {
+  userId: number;
+  name: string;
+  points: number;
+};
+
 // By-team leaderboard rows (rule 9 — team prizes). `averagePoints` is the
-// totalPoints divided by the equipo's current active members.
+// totalPoints divided by the equipo's current active members. `roster` is
+// the per-member breakdown of `totalPoints`, sorted highest-first.
 export type TeamStandingsRow = {
   position: number;
   equipo: string;
   members: number;
   totalPoints: number;
   averagePoints: number;
+  roster: TeamMember[];
 };
 
 export type TeamRoundStandings = {
