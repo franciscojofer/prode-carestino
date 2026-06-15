@@ -141,36 +141,57 @@ function FixtureRow({
   // Centre pill: kickoff time normally, real score when finished.
   const showScore =
     match.status === 'finished' && match.homeGoals !== null && match.awayGoals !== null;
-  return (
-    <div
-      className={`grid items-center px-4 py-3 ${isFirst ? '' : 'border-t'}`}
-      style={{ gridTemplateColumns: '1fr auto 1fr' }}
-    >
+
+  // Inner layout shared by the clickable and non-clickable variants. The
+  // pill shows the real score (finished) or the kickoff time (pending).
+  const content = (
+    <>
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-xl leading-none">{match.homeTeam.flagEmoji}</span>
         <span className="text-sm font-semibold truncate text-ink">{match.homeTeam.nameEs}</span>
       </div>
-      {/* The result pill is a button only once the match finished — it opens
-          the per-match predictions of every participant. Pending matches
-          keep showing the kickoff time and are not clickable. */}
-      {showScore ? (
-        <button
-          type="button"
-          onClick={() => onOpenMatch(match)}
-          className="px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt transition-transform active:scale-95 hover:border-brand-orange"
-          aria-label={`Ver predicciones de ${match.homeTeam.nameEs} vs ${match.awayTeam.nameEs}`}
-        >
-          {match.homeGoals} - {match.awayGoals}
-        </button>
-      ) : (
-        <div className="px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt">
-          {formatTime(match.scheduledAt)}
-        </div>
-      )}
+      <div
+        className={`px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt ${
+          showScore ? 'border-brand-orange/40' : ''
+        }`}
+      >
+        {showScore ? `${match.homeGoals} - ${match.awayGoals}` : formatTime(match.scheduledAt)}
+      </div>
       <div className="flex items-center gap-2 justify-end min-w-0">
         <span className="text-sm font-semibold truncate text-ink">{match.awayTeam.nameEs}</span>
         <span className="text-xl leading-none">{match.awayTeam.flagEmoji}</span>
       </div>
+    </>
+  );
+
+  const gridCols = { gridTemplateColumns: '1fr auto 1fr' } as const;
+
+  // Once finished, the whole row is clickable and opens the per-match
+  // predictions of every participant. A subtle hover/active background plus
+  // the faint orange outline on the score pill hint at the affordance.
+  // Pending matches stay static.
+  if (showScore) {
+    return (
+      <button
+        type="button"
+        onClick={() => onOpenMatch(match)}
+        className={`w-full grid items-center px-4 py-3 text-left transition-colors hover:bg-surface-alt active:bg-surface-alt ${
+          isFirst ? '' : 'border-t'
+        }`}
+        style={gridCols}
+        aria-label={`Ver predicciones de ${match.homeTeam.nameEs} vs ${match.awayTeam.nameEs}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`grid items-center px-4 py-3 ${isFirst ? '' : 'border-t'}`}
+      style={gridCols}
+    >
+      {content}
     </div>
   );
 }

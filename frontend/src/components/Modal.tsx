@@ -50,7 +50,11 @@ export function Modal({ open, onClose, title, children }: Props) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-surface w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-card max-h-[92vh] flex flex-col">
+      {/* `dvh` (dynamic viewport height) instead of `vh` so the modal never
+          grows taller than the area actually visible on mobile — on iOS
+          Safari `vh` ignores the address bar, which pushed the sticky
+          header (and its close button) off the top of the screen. */}
+      <div className="bg-surface w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-card max-h-[92dvh] flex flex-col">
         {/* Header stays outside the scroll area, so the title and the close
             button remain visible while the body scrolls. `shrink-0` keeps it
             from being squeezed when the body is taller than the viewport. */}
