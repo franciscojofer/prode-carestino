@@ -52,8 +52,9 @@ export function Modal({ open, onClose, title, children }: Props) {
     >
       <div className="bg-surface w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-card max-h-[92vh] flex flex-col">
         {/* Header stays outside the scroll area, so the title and the close
-            button remain visible while the body scrolls. */}
-        <header className="flex items-center justify-between px-5 py-3 border-b">
+            button remain visible while the body scrolls. `shrink-0` keeps it
+            from being squeezed when the body is taller than the viewport. */}
+        <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b">
           <h2 className="text-sm font-extrabold text-brand-navy min-w-0 truncate pr-2">
             {title}
           </h2>
@@ -66,7 +67,9 @@ export function Modal({ open, onClose, title, children }: Props) {
             <X size={18} />
           </button>
         </header>
-        <div className="overflow-y-auto p-5">{children}</div>
+        {/* `flex-1 min-h-0` makes the body scroll inside the modal instead of
+            growing past `max-h` and pushing the header off-screen. */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-5">{children}</div>
       </div>
     </div>,
     document.body,
