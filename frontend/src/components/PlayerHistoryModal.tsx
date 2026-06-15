@@ -32,16 +32,25 @@ export function PlayerHistoryModal({ open, onClose, userId, userName }: Props) {
 
   const orderedRounds = rounds.data ?? [];
 
-  // Default to the active round once data is available; fall back to the
-  // last round in the list when there is no active round.
-  useEffect(() => {
-    if (roundId !== null || orderedRounds.length === 0) return;
-    const fallback = orderedRounds[orderedRounds.length - 1]?.id ?? null;
-    setRoundId(currentRound.data?.id ?? fallback);
-  }, [currentRound.data, orderedRounds, roundId]);
+  // The round the modal should open on: the round currently being played,
+  // falling back to the last round when there is no active one.
+  const defaultRoundId =
+    currentRound.data?.id ?? orderedRounds[orderedRounds.length - 1]?.id ?? null;
 
-  // Reset the chosen round when the modal is reopened for another player so
-  // it always starts on the active round.
+  // While the modal is open, anchor to the active round until the user
+  // navigates away from it. The `open` guard keeps this from re-setting the
+  // round while the modal is closed, which is what previously left the
+  // field blank when reopening for another player.
+  useEffect(() => {
+    if (!open) return;
+    if (roundId === null && defaultRoundId !== null) {
+      setRoundId(defaultRoundId);
+    }
+  }, [open, roundId, defaultRoundId]);
+
+  // Clear the selection when the modal closes so the next player always
+  // starts on the round currently being played (requirement) instead of
+  // wherever the previous navigation left off.
   useEffect(() => {
     if (!open) setRoundId(null);
   }, [open]);

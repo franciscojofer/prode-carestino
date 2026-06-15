@@ -8,6 +8,7 @@
 // Role: Used by AdminUsuariosScreen.
 
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 type Props = {
@@ -36,7 +37,11 @@ export function Modal({ open, onClose, title, children }: Props) {
 
   if (!open) return null;
 
-  return (
+  // Rendered through a portal on document.body so the overlay is positioned
+  // against the viewport. Without this, an ancestor that uses a CSS
+  // transform (e.g. the Layout's slide-in animation) would capture the
+  // `fixed` positioning and confine the modal below the app header.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ink/40"
       onMouseDown={(e) => {
@@ -46,12 +51,16 @@ export function Modal({ open, onClose, title, children }: Props) {
       }}
     >
       <div className="bg-surface w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-card max-h-[92vh] flex flex-col">
+        {/* Header stays outside the scroll area, so the title and the close
+            button remain visible while the body scrolls. */}
         <header className="flex items-center justify-between px-5 py-3 border-b">
-          <h2 className="text-sm font-extrabold text-brand-navy">{title}</h2>
+          <h2 className="text-sm font-extrabold text-brand-navy min-w-0 truncate pr-2">
+            {title}
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-muted"
+            className="shrink-0 p-1 text-muted"
             aria-label="Cerrar"
           >
             <X size={18} />
@@ -59,6 +68,7 @@ export function Modal({ open, onClose, title, children }: Props) {
         </header>
         <div className="overflow-y-auto p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
