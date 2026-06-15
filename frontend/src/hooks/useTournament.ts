@@ -84,6 +84,40 @@ export type TeamStandingsResponse = {
   total: TeamStandingsRow[];
 };
 
+// One match row inside a player's round history. `prediction` and `points`
+// are null until the match has finished (the backend hides them).
+export type UserHistoryMatch = {
+  id: number;
+  scheduledAt: string;
+  homeTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
+  awayTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
+  status: string;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  isFinished: boolean;
+  prediction: { homeGoals: number; awayGoals: number } | null;
+  points: number | null;
+  isExact: boolean;
+};
+
+export type UserRoundHistory = {
+  user: { id: number; name: string };
+  round: { id: number; name: string; orderIndex: number; isKnockout: boolean };
+  matches: UserHistoryMatch[];
+};
+
+// Fetches a player's prediction history for one round. Disabled until both
+// a user id and a round id are provided, which avoids spurious fetches
+// while the modal is closed or before a default round is chosen.
+export function useUserHistory(userId: number | null, roundId: number | null) {
+  return useQuery({
+    queryKey: ['tournament', 'user-history', userId, roundId],
+    queryFn: () =>
+      apiFetch<UserRoundHistory>(`/tournament/user-history?userId=${userId}&roundId=${roundId}`),
+    enabled: userId !== null && roundId !== null,
+  });
+}
+
 export function useStandings() {
   return useQuery({
     queryKey: ['tournament', 'standings'],

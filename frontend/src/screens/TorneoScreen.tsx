@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Card } from '../components/Card';
 import { SegmentedControl } from '../components/SegmentedControl';
+import { PlayerHistoryModal } from '../components/PlayerHistoryModal';
 import { useAuth } from '../hooks/useAuth';
 import {
   useStandings,
@@ -221,6 +222,10 @@ type StandingsTableProps = {
 };
 
 function StandingsTable({ rows, currentUserId }: StandingsTableProps) {
+  // Player whose history modal is open, or null when closed. Clicking any
+  // row sets it; the modal reveals predictions only for finished matches.
+  const [selected, setSelected] = useState<{ userId: number; name: string } | null>(null);
+
   if (rows.length === 0) {
     return (
       <Card>
@@ -242,18 +247,27 @@ function StandingsTable({ rows, currentUserId }: StandingsTableProps) {
       {rows.map((row, i) => {
         const isMe = row.userId === currentUserId;
         return (
-          <div
+          <button
             key={row.userId}
-            className={`grid grid-cols-12 px-3 py-3 text-sm items-center ${isMe ? 'bg-brand-orange-soft text-brand-orange font-bold' : 'text-ink font-medium'
+            type="button"
+            onClick={() => setSelected({ userId: row.userId, name: row.name })}
+            className={`w-full text-left grid grid-cols-12 px-3 py-3 text-sm items-center transition-colors hover:bg-surface-alt active:bg-surface-alt ${isMe ? 'bg-brand-orange-soft text-brand-orange font-bold' : 'text-ink font-medium'
               } ${i === 0 ? '' : 'border-t'}`}
           >
             <div className="col-span-1 font-bold">{row.position}</div>
             <div className="col-span-7 truncate">{row.name}</div>
             <div className="col-span-2 text-right">{row.exactCount}</div>
             <div className="col-span-2 text-right font-extrabold">{row.totalPoints}</div>
-          </div>
+          </button>
         );
       })}
+
+      <PlayerHistoryModal
+        open={selected !== null}
+        onClose={() => setSelected(null)}
+        userId={selected?.userId ?? null}
+        userName={selected?.name ?? ''}
+      />
     </Card>
   );
 }

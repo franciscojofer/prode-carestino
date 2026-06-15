@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { getActiveRound } from './tournament.queries';
 import { getGroupsTable } from './groupsTable.service';
 import { getStandings, getTeamStandings } from './standings.service';
+import { getUserRoundHistory } from './userHistory.service';
 import { isLockedForPredictions } from '../predictions/predictions.guards';
 import { NotFoundError } from '../../lib/errors';
 import { cached, invalidate } from '../../lib/cache';
@@ -30,6 +31,12 @@ export function invalidateRoundsCache(): void {
 
 // Query params for the fixture endpoint.
 const fixtureQuerySchema = z.object({
+  roundId: z.coerce.number().int().positive(),
+});
+
+// Query params for the player history endpoint.
+const userHistoryQuerySchema = z.object({
+  userId: z.coerce.number().int().positive(),
   roundId: z.coerce.number().int().positive(),
 });
 
@@ -115,6 +122,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
   app.get('/standings', { onRequest: [app.requireAuth] }, async () => {
     const standings = await getStandings(app.prisma);
     return { standings };
+  });
+
+  // GET /user-history?userId=N&roundId=M — one player's predictions for a
+  // round, joined with the official result and points. Predictions are
+  // revealed only for finished matches (handled in the service).
+  app.get('/user-history', { onRequest: [app.requireAuth] }, async (req) => {
+    const { userId, roundId } = userHistoryQuerySchema.parse(req.query);
+    return getUserRoundHistory(app.prisma, userId, roundId);
   });
 
   // GET /team-standings — by-team leaderboard with per-round breakdowns
