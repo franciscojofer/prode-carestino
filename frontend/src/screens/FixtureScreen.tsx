@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Card } from '../components/Card';
+import { MatchPredictionsModal } from '../components/MatchPredictionsModal';
 import { useCurrentRound, useRounds } from '../hooks/useTournament';
 import { useFixture, type MatchWithPrediction } from '../hooks/usePredictions';
 import { formatTime, formatDayHeader, dayKey } from '../lib/dateFormat';
@@ -18,6 +19,9 @@ export function FixtureScreen() {
   const currentRound = useCurrentRound();
   const rounds = useRounds();
   const [roundId, setRoundId] = useState<number | null>(null);
+  // Match whose per-participant predictions modal is open, or null when
+  // closed. Only finished matches can set this.
+  const [openMatch, setOpenMatch] = useState<MatchWithPrediction | null>(null);
 
   useEffect(() => {
     if (roundId === null && currentRound.data) setRoundId(currentRound.data.id);
@@ -87,28 +91,53 @@ export function FixtureScreen() {
           </Card>
         ) : (
           buckets.map((bucket) => (
-            <DayCard key={bucket.day} matches={bucket.matches} />
+            <DayCard key={bucket.day} matches={bucket.matches} onOpenMatch={setOpenMatch} />
           ))
         )}
       </div>
+
+      <MatchPredictionsModal
+        open={openMatch !== null}
+        onClose={() => setOpenMatch(null)}
+        matchId={openMatch?.id ?? null}
+        title={
+          openMatch
+            ? `${openMatch.homeTeam.code} ${openMatch.homeGoals} - ${openMatch.awayGoals} ${openMatch.awayTeam.code}`
+            : ''
+        }
+      />
     </Layout>
   );
 }
 
-function DayCard({ matches }: { matches: MatchWithPrediction[] }) {
+function DayCard({
+  matches,
+  onOpenMatch,
+}: {
+  matches: MatchWithPrediction[];
+  onOpenMatch: (match: MatchWithPrediction) => void;
+}) {
   return (
     <Card>
       <div className="px-4 py-2.5 text-xs font-extrabold text-brand-navy bg-surface-alt">
         {formatDayHeader(matches[0].scheduledAt)}
       </div>
       {matches.map((m, i) => (
-        <FixtureRow key={m.id} match={m} isFirst={i === 0} />
+        <FixtureRow key={m.id} match={m} isFirst={i === 0} onOpenMatch={onOpenMatch} />
       ))}
     </Card>
   );
 }
 
-function FixtureRow({ match, isFirst }: { match: MatchWithPrediction; isFirst: boolean }) {
+function FixtureRow({
+  match,
+  isFirst,
+  onOpenMatch,
+}: {
+  match: MatchWithPrediction;
+  isFirst: boolean;
+  onOpenMatch: (match: MatchWithPrediction) => void;
+}) {
   // Centre pill: kickoff time normally, real score when finished.
   const showScore =
     match.status === 'finished' && match.homeGoals !== null && match.awayGoals !== null;
@@ -121,11 +150,23 @@ function FixtureRow({ match, isFirst }: { match: MatchWithPrediction; isFirst: b
         <span className="text-xl leading-none">{match.homeTeam.flagEmoji}</span>
         <span className="text-sm font-semibold truncate text-ink">{match.homeTeam.nameEs}</span>
       </div>
-      <div
-        className={`px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt`}
-      >
-        {showScore ? `${match.homeGoals} - ${match.awayGoals}` : formatTime(match.scheduledAt)}
-      </div>
+      {/* The result pill is a button only once the match finished — it opens
+          the per-match predictions of every participant. Pending matches
+          keep showing the kickoff time and are not clickable. */}
+      {showScore ? (
+        <button
+          type="button"
+          onClick={() => onOpenMatch(match)}
+          className="px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt transition-transform active:scale-95 hover:border-brand-orange"
+          aria-label={`Ver predicciones de ${match.homeTeam.nameEs} vs ${match.awayTeam.nameEs}`}
+        >
+          {match.homeGoals} - {match.awayGoals}
+        </button>
+      ) : (
+        <div className="px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt">
+          {formatTime(match.scheduledAt)}
+        </div>
+      )}
       <div className="flex items-center gap-2 justify-end min-w-0">
         <span className="text-sm font-semibold truncate text-ink">{match.awayTeam.nameEs}</span>
         <span className="text-xl leading-none">{match.awayTeam.flagEmoji}</span>

@@ -11,6 +11,7 @@ import { getActiveRound } from './tournament.queries';
 import { getGroupsTable } from './groupsTable.service';
 import { getStandings, getTeamStandings } from './standings.service';
 import { getUserRoundHistory } from './userHistory.service';
+import { getMatchPredictions } from './matchPredictions.service';
 import { isLockedForPredictions } from '../predictions/predictions.guards';
 import { NotFoundError } from '../../lib/errors';
 import { cached, invalidate } from '../../lib/cache';
@@ -38,6 +39,11 @@ const fixtureQuerySchema = z.object({
 const userHistoryQuerySchema = z.object({
   userId: z.coerce.number().int().positive(),
   roundId: z.coerce.number().int().positive(),
+});
+
+// Query params for the match predictions endpoint.
+const matchPredictionsQuerySchema = z.object({
+  matchId: z.coerce.number().int().positive(),
 });
 
 export async function tournamentRoutes(app: FastifyInstance) {
@@ -130,6 +136,14 @@ export async function tournamentRoutes(app: FastifyInstance) {
   app.get('/user-history', { onRequest: [app.requireAuth] }, async (req) => {
     const { userId, roundId } = userHistoryQuerySchema.parse(req.query);
     return getUserRoundHistory(app.prisma, userId, roundId);
+  });
+
+  // GET /match-predictions?matchId=N — every participant's prediction for a
+  // finished match with the points it earned, ordered points DESC then name
+  // ASC. Returns no rows for matches that have not finished.
+  app.get('/match-predictions', { onRequest: [app.requireAuth] }, async (req) => {
+    const { matchId } = matchPredictionsQuerySchema.parse(req.query);
+    return getMatchPredictions(app.prisma, matchId);
   });
 
   // GET /team-standings — by-team leaderboard with per-round breakdowns

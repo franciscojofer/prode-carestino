@@ -118,6 +118,39 @@ export function useUserHistory(userId: number | null, roundId: number | null) {
   });
 }
 
+// One participant row in a match's predictions table. `prediction` is null
+// when the user did not forecast the match (points is 0 then).
+export type MatchPredictionRow = {
+  userId: number;
+  name: string;
+  prediction: { homeGoals: number; awayGoals: number } | null;
+  points: number;
+  isExact: boolean;
+};
+
+export type MatchPredictionsResult = {
+  match: {
+    id: number;
+    homeTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
+    awayTeam: { id: number; nameEs: string; code: string; flagEmoji: string };
+    homeGoals: number | null;
+    awayGoals: number | null;
+    isFinished: boolean;
+  };
+  rows: MatchPredictionRow[];
+};
+
+// Fetches every participant's prediction for one finished match. Disabled
+// until a match id is provided, so the modal does not fetch while closed.
+export function useMatchPredictions(matchId: number | null) {
+  return useQuery({
+    queryKey: ['tournament', 'match-predictions', matchId],
+    queryFn: () =>
+      apiFetch<MatchPredictionsResult>(`/tournament/match-predictions?matchId=${matchId}`),
+    enabled: matchId !== null,
+  });
+}
+
 export function useStandings() {
   return useQuery({
     queryKey: ['tournament', 'standings'],
