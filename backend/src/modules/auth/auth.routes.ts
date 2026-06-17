@@ -8,7 +8,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { loginSchema } from './auth.schemas';
-import { loginUser } from './auth.service';
+import { loginUser, recordLoginEvent } from './auth.service';
 import { UnauthorizedError } from '../../lib/errors';
 
 export async function authRoutes(app: FastifyInstance) {
@@ -17,6 +17,13 @@ export async function authRoutes(app: FastifyInstance) {
     const input = loginSchema.parse(req.body);
     const user = await loginUser(app.prisma, input);
     app.setSessionCookie(reply, { userId: user.id, isAdmin: user.isAdmin });
+    // Audit the login (IP + user-agent). Best-effort: a logging failure must
+    // never turn a valid login into an error.
+    try {
+      await recordLoginEvent(app.prisma, user.id, req.ip, req.headers['user-agent']);
+    } catch (err) {
+      req.log.error(err, 'failed to record login event');
+    }
     return reply.send({ user });
   });
 

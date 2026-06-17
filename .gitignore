@@ -13,6 +13,8 @@ npm-debug.log*
 # Base de datos
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 backend/prisma/prode.db
 backend/prisma/migrations/dev.db*
 

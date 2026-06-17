@@ -57,3 +57,18 @@ export async function loginUser(prisma: Prisma, input: LoginInput): Promise<Auth
     equipo: user.equipo,
   };
 }
+
+// Persists a successful-login audit row (source IP + user-agent).
+// Inputs: prisma client, the user id, the request IP and optional user-agent.
+// Output: none. Side effect: inserts a `LoginEvent` row. Errors are swallowed
+// by the caller so an audit failure can never block a valid login.
+export async function recordLoginEvent(
+  prisma: Prisma,
+  userId: number,
+  ipAddress: string,
+  userAgent: string | undefined,
+): Promise<void> {
+  await prisma.loginEvent.create({
+    data: { userId, ipAddress, userAgent: userAgent ?? null },
+  });
+}

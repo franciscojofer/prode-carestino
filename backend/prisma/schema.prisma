@@ -49,8 +49,27 @@ model User {
 
   predictions  Prediction[]
   loginAttempt LoginAttempt?
+  loginEvents  LoginEvent[]
 
   @@index([isActive])
+}
+
+// Audit trail of successful logins. One row per login, capturing the source
+// IP and user-agent. Used by the admin panel to spot a single person signing
+// in to multiple accounts from the same IP. Only written on success, so a
+// failed password attempt never creates a row here.
+model LoginEvent {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Source IP as seen by Fastify (already X-Forwarded-For aware via trustProxy).
+  ipAddress String
+  // Raw browser/client user-agent string. Null when the client omits it.
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([ipAddress])
 }
 
 // One row per user tracking failed-login attempts and the current lockout

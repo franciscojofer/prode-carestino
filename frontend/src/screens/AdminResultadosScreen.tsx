@@ -9,12 +9,12 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ClipboardList, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Header } from '../components/Header';
 import { TabBar } from '../components/TabBar';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { SegmentedControl } from '../components/SegmentedControl';
+import { AdminTabs } from '../components/AdminTabs';
 import { useRounds, useCurrentRound } from '../hooks/useTournament';
 import {
   useAdminMatches,
@@ -48,32 +48,7 @@ export function AdminResultadosScreen() {
     <div className="flex flex-col h-dvh overflow-hidden bg-surface-alt">
       <Header title="Panel Admin" showBack onBack={() => navigate('/mas')} adminBadge />
 
-      <div className="px-4 pt-3 pb-2 shrink-0">
-        <SegmentedControl
-          value="results"
-          onChange={(v) => v === 'users' && navigate('/admin/usuarios')}
-          options={[
-            {
-              value: 'users',
-              label: (
-                <>
-                  <Users size={14} className="inline mr-1.5 -mt-0.5" />
-                  USUARIOS
-                </>
-              ),
-            },
-            {
-              value: 'results',
-              label: (
-                <>
-                  <ClipboardList size={14} className="inline mr-1.5 -mt-0.5" />
-                  RESULTADOS
-                </>
-              ),
-            },
-          ]}
-        />
-      </div>
+      <AdminTabs active="results" />
 
       <div className="px-4 pt-2 pb-2 shrink-0">
         <div className="rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">

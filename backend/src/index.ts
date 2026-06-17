@@ -25,6 +25,7 @@ import { predictionsRoutes } from './modules/predictions/predictions.routes';
 import { adminUsersRoutes } from './modules/admin/adminUsers.routes';
 import { adminMatchesRoutes } from './modules/admin/adminMatches.routes';
 import { adminTeamsRoutes } from './modules/admin/adminTeams.routes';
+import { adminLoginsRoutes } from './modules/admin/adminLogins.routes';
 
 const isDev = env.NODE_ENV !== 'production';
 
@@ -96,6 +97,7 @@ export async function buildServer() {
       await api.register(adminUsersRoutes, { prefix: '/admin/users' });
       await api.register(adminMatchesRoutes, { prefix: '/admin/matches' });
       await api.register(adminTeamsRoutes, { prefix: '/admin/teams' });
+      await api.register(adminLoginsRoutes, { prefix: '/admin/logins' });
     },
     { prefix: '/api' },
   );

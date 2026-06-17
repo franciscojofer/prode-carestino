@@ -80,6 +80,34 @@ export function useDeactivateAdminUser() {
   });
 }
 
+// ---------- Login audit ----------------------------------------------------
+
+export type LoginEventRow = {
+  id: number;
+  ipAddress: string;
+  userAgent: string | null;
+  createdAt: string;
+  user: { id: number; nombre: string; apellido: string; email: string };
+};
+
+export type LoginEventsPage = {
+  events: LoginEventRow[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+// Fetches one 100-row page of login events (newest first). `keepPreviousData`
+// avoids a flash of empty state while paging back and forth.
+export function useAdminLogins(page: number) {
+  return useQuery({
+    queryKey: ['admin', 'logins', page],
+    queryFn: () => apiFetch<LoginEventsPage>(`/admin/logins?page=${page}`),
+    placeholderData: (prev) => prev,
+  });
+}
+
 // ---------- Matches --------------------------------------------------------
 
 export type AdminMatchRow = {

@@ -100,6 +100,13 @@ export function formatTime(input: string | Date): string {
   return `${p.hour}:${p.minute}`;
 }
 
+// "12/06/2026 · 16:30" — full date+time in Argentina hours, used by the
+// admin login-audit list.
+export function formatDateTime(input: string | Date): string {
+  const p = toArgentinaParts(input);
+  return `${String(p.day).padStart(2, '0')}/${String(p.month).padStart(2, '0')}/${p.year} · ${p.hour}:${p.minute}`;
+}
+
 // "Viernes, 12 de junio" used by the Fixture screen as a day header.
 export function formatDayHeader(input: string | Date): string {
   const p = toArgentinaParts(input);

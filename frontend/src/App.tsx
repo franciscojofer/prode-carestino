@@ -18,6 +18,7 @@ import { MasScreen } from './screens/MasScreen';
 import { ReglasScreen } from './screens/ReglasScreen';
 import { AdminUsuariosScreen } from './screens/AdminUsuariosScreen';
 import { AdminResultadosScreen } from './screens/AdminResultadosScreen';
+import { AdminLogsScreen } from './screens/AdminLogsScreen';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
         <Route element={<AdminRoute />}>
           <Route path="/admin/usuarios" element={<AdminUsuariosScreen />} />
           <Route path="/admin/resultados" element={<AdminResultadosScreen />} />
+          <Route path="/admin/logs" element={<AdminLogsScreen />} />
         </Route>
       </Route>
 

@@ -10,13 +10,13 @@ import { useState } from 'react';
 import { useForm, type DefaultValues, type UseFormReturn, type FieldPath, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardList, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
 import { Toggle } from '../components/Toggle';
 import { Modal } from '../components/Modal';
-import { SegmentedControl } from '../components/SegmentedControl';
+import { AdminTabs } from '../components/AdminTabs';
 import { Header } from '../components/Header';
 import { TabBar } from '../components/TabBar';
 import {
@@ -59,32 +59,7 @@ export function AdminUsuariosScreen() {
     <div className="flex flex-col h-dvh overflow-hidden bg-surface-alt">
       <Header title="Panel Admin" showBack onBack={() => navigate('/mas')} adminBadge />
 
-      <div className="px-4 pt-3 pb-2 shrink-0">
-        <SegmentedControl
-          value="users"
-          onChange={(v) => v === 'results' && navigate('/admin/resultados')}
-          options={[
-            {
-              value: 'users',
-              label: (
-                <>
-                  <Users size={14} className="inline mr-1.5 -mt-0.5" />
-                  USUARIOS
-                </>
-              ),
-            },
-            {
-              value: 'results',
-              label: (
-                <>
-                  <ClipboardList size={14} className="inline mr-1.5 -mt-0.5" />
-                  RESULTADOS
-                </>
-              ),
-            },
-          ]}
-        />
-      </div>
+      <AdminTabs active="users" />
 
       <div className="px-4 mb-2 mt-2 shrink-0 flex items-center justify-between">
         <span className="text-[11px] font-bold tracking-wider text-muted">
