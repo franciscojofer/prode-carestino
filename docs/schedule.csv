@@ -29,7 +29,7 @@ match_id,phase,group,date_arg,time_arg,home_team,away_team,city,timezone,status
 28,Group stage,A,2026-06-18,22:00,Mexico,South Korea,Guadalajara,ART_UTC-3,scheduled
 29,Group stage,C,2026-06-19,22:00,Brazil,Haiti,Philadelphia,ART_UTC-3,scheduled
 30,Group stage,C,2026-06-19,19:00,Scotland,Morocco,Boston,ART_UTC-3,scheduled
-31,Group stage,D,2026-06-20,01:00,TUR/KOS,Paraguay,SF Bay Area,ART_UTC-3,scheduled
+31,Group stage,D,2026-06-20,00:00,TUR/KOS,Paraguay,SF Bay Area,ART_UTC-3,scheduled
 32,Group stage,D,2026-06-19,16:00,USA,Australia,Seattle,ART_UTC-3,scheduled
 33,Group stage,E,2026-06-20,17:00,Germany,Ivory Coast,Toronto,ART_UTC-3,scheduled
 34,Group stage,E,2026-06-20,21:00,Ecuador,Curacao,Kansas City,ART_UTC-3,scheduled
