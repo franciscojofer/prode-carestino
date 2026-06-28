@@ -9,6 +9,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { getActiveRound } from './tournament.queries';
 import { getGroupsTable } from './groupsTable.service';
+import { getBracket } from './bracket.service';
 import { getStandings, getTeamStandings } from './standings.service';
 import { getUserRoundHistory } from './userHistory.service';
 import { getMatchPredictions } from './matchPredictions.service';
@@ -122,6 +123,11 @@ export async function tournamentRoutes(app: FastifyInstance) {
         prediction: m.predictions[0] ?? null,
       })),
     };
+  });
+
+  // GET /bracket — knockout rounds with their matches for the "Llaves" view.
+  app.get('/bracket', { onRequest: [app.requireAuth] }, async () => {
+    return getBracket(app.prisma);
   });
 
   // GET /standings — global leaderboard (rule 8 — updated).

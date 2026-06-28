@@ -20,7 +20,7 @@ export function FixtureScreen() {
   const rounds = useRounds();
   const [roundId, setRoundId] = useState<number | null>(null);
   // Match whose per-participant predictions modal is open, or null when
-  // closed. Only finished matches can set this.
+  // closed. Any locked match (15 min before kickoff) can set this.
   const [openMatch, setOpenMatch] = useState<MatchWithPrediction | null>(null);
 
   useEffect(() => {
@@ -100,14 +100,20 @@ export function FixtureScreen() {
         open={openMatch !== null}
         onClose={() => setOpenMatch(null)}
         matchId={openMatch?.id ?? null}
-        title={
-          openMatch
-            ? `${openMatch.homeTeam.code} ${openMatch.homeGoals} - ${openMatch.awayGoals} ${openMatch.awayTeam.code}`
-            : ''
-        }
+        title={openMatch ? matchModalTitle(openMatch) : ''}
       />
     </Layout>
   );
+}
+
+// Builds the predictions-modal title for a match: the real score once it has
+// finished, otherwise the "COD vs COD" matchup (used while only locked).
+function matchModalTitle(match: MatchWithPrediction): string {
+  const finished =
+    match.status === 'finished' && match.homeGoals !== null && match.awayGoals !== null;
+  return finished
+    ? `${match.homeTeam.code} ${match.homeGoals} - ${match.awayGoals} ${match.awayTeam.code}`
+    : `${match.homeTeam.code} vs ${match.awayTeam.code}`;
 }
 
 function DayCard({
@@ -141,6 +147,9 @@ function FixtureRow({
   // Centre pill: kickoff time normally, real score when finished.
   const showScore =
     match.status === 'finished' && match.homeGoals !== null && match.awayGoals !== null;
+  // Predictions become visible once the match locks (15 min before kickoff),
+  // so the whole row turns clickable from that point — not only when finished.
+  const isRevealed = match.isLocked || showScore;
 
   // Inner layout shared by the clickable and non-clickable variants. The
   // pill shows the real score (finished) or the kickoff time (pending).
@@ -152,7 +161,7 @@ function FixtureRow({
       </div>
       <div
         className={`px-3 py-1 rounded-md text-xs font-extrabold mx-3 border text-ink bg-surface-alt ${
-          showScore ? 'border-brand-orange/40' : ''
+          isRevealed ? 'border-brand-orange/40' : ''
         }`}
       >
         {showScore ? `${match.homeGoals} - ${match.awayGoals}` : formatTime(match.scheduledAt)}
@@ -166,11 +175,11 @@ function FixtureRow({
 
   const gridCols = { gridTemplateColumns: '1fr auto 1fr' } as const;
 
-  // Once finished, the whole row is clickable and opens the per-match
-  // predictions of every participant. A subtle hover/active background plus
-  // the faint orange outline on the score pill hint at the affordance.
-  // Pending matches stay static.
-  if (showScore) {
+  // Once revealed (locked or finished), the whole row is clickable and opens
+  // the per-match predictions of every participant. A subtle hover/active
+  // background plus the faint orange outline on the score pill hint at the
+  // affordance. Matches that are still open for editing stay static.
+  if (isRevealed) {
     return (
       <button
         type="button"

@@ -1,35 +1,59 @@
 // File: frontend/src/screens/EstadisticasScreen.tsx
-// Purpose: Group stage statistics screen.
-// Functionality: Lists every group with its live table — games played,
-// won, drawn, lost, goal difference and points — sorted by the standard
-// tie-breakers handled by the backend.
+// Purpose: Tournament statistics screen.
+// Functionality: A SegmentedControl switches between two views — "Grupos"
+// (every group's live table, sorted by the standard tie-breakers handled by
+// the backend) and "Llaves" (the knockout bracket, rendered by `Bracket`).
 // Role: Bound to /estadisticas behind ProtectedRoute.
 
+import { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Card } from '../components/Card';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { Bracket } from '../components/Bracket';
 import { useGroups, type GroupTable, type GroupTeam } from '../hooks/useTournament';
 
+// Top-level view selector for the statistics screen.
+type StatsView = 'groups' | 'bracket';
+
 export function EstadisticasScreen() {
-  const groups = useGroups();
+  const [view, setView] = useState<StatsView>('groups');
 
   return (
     <Layout title="Estadísticas">
       <div className="px-4 pt-3 pb-6 space-y-4">
-        {groups.isLoading && (
-          <Card>
-            <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
-          </Card>
-        )}
-        {groups.isError && (
-          <Card>
-            <div className="px-4 py-8 text-center text-sm text-danger">
-              No pudimos cargar los grupos. Reintentá en un momento.
-            </div>
-          </Card>
-        )}
-        {groups.data?.map((group) => <GroupSection key={group.id} group={group} />)}
+        <SegmentedControl
+          value={view}
+          onChange={(v) => setView(v as StatsView)}
+          options={[
+            { value: 'groups', label: 'GRUPOS' },
+            { value: 'bracket', label: 'LLAVES' },
+          ]}
+        />
+        {view === 'groups' ? <GroupsView /> : <Bracket />}
       </div>
     </Layout>
+  );
+}
+
+function GroupsView() {
+  const groups = useGroups();
+
+  return (
+    <>
+      {groups.isLoading && (
+        <Card>
+          <div className="px-4 py-8 text-center text-sm text-muted">Cargando…</div>
+        </Card>
+      )}
+      {groups.isError && (
+        <Card>
+          <div className="px-4 py-8 text-center text-sm text-danger">
+            No pudimos cargar los grupos. Reintentá en un momento.
+          </div>
+        </Card>
+      )}
+      {groups.data?.map((group) => <GroupSection key={group.id} group={group} />)}
+    </>
   );
 }
 

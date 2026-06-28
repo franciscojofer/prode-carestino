@@ -136,6 +136,9 @@ export type MatchPredictionsResult = {
     homeGoals: number | null;
     awayGoals: number | null;
     isFinished: boolean;
+    // True once predictions are locked (15 min before kickoff). Rows are
+    // revealed from this point on; points only matter once `isFinished`.
+    isLocked: boolean;
   };
   rows: MatchPredictionRow[];
 };
@@ -171,6 +174,39 @@ export function useGroups() {
     queryKey: ['tournament', 'groups'],
     queryFn: () => apiFetch<{ groups: GroupTable[] }>('/tournament/groups'),
     select: (data) => data.groups,
+  });
+}
+
+// One team side of a bracket match. Equal to `MatchTeam` but kept separate
+// so the bracket types read independently.
+export type BracketTeam = { id: number; nameEs: string; code: string; flagEmoji: string };
+
+// One knockout match. `placeholderLabel` (e.g. "W89 vs W90") is shown instead
+// of the team rows while both sides are still the "Por definir" (TBD) team.
+export type BracketMatch = {
+  id: number;
+  scheduledAt: string;
+  homeTeam: BracketTeam;
+  awayTeam: BracketTeam;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  status: string;
+  placeholderLabel: string | null;
+  winnerByPenaltiesTeamId: number | null;
+};
+
+export type BracketRound = {
+  id: number;
+  name: string;
+  orderIndex: number;
+  matches: BracketMatch[];
+};
+
+export function useBracket() {
+  return useQuery({
+    queryKey: ['tournament', 'bracket'],
+    queryFn: () => apiFetch<{ rounds: BracketRound[] }>('/tournament/bracket'),
+    select: (data) => data.rounds,
   });
 }
 

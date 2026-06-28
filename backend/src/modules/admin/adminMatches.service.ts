@@ -15,6 +15,7 @@ import {
   invalidateTeamStandingsCache,
 } from '../tournament/standings.service';
 import { invalidateGroupsCache } from '../tournament/groupsTable.service';
+import { invalidateBracketCache } from '../tournament/bracket.service';
 import type {
   MatchResultInput,
   UpdateMatchInput,
@@ -28,6 +29,7 @@ function invalidateMatchDerivedCaches(): void {
   invalidateStandingsCache();
   invalidateTeamStandingsCache();
   invalidateGroupsCache();
+  invalidateBracketCache();
 }
 
 // Common select used by `listMatches` so the row shape stays consistent.
