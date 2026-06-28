@@ -18,6 +18,15 @@ import { formatShortDate, formatTime } from '../lib/dateFormat';
 // shows the FIFA slot label ("W89 vs W90") instead of two empty team rows.
 const TBD_CODE = 'TBD';
 
+// Desktop bracket geometry (px). Each round divides the same total height into
+// N equal slots and centres its card inside its slot, so a card in round r+1
+// lands exactly between the two cards that feed it — exact tree centring
+// regardless of card height. COL_W/GAP are wide enough to use the screen width
+// and leave room for the connector curves drawn in the gaps.
+const COL_W = 224; // matches the previous w-56 column width
+const GAP = 72; // horizontal separation between rounds (was gap-4 = 16px)
+const ROW = 104; // slot height for the largest (first) round
+
 // True once the match has a final score loaded.
 function isFinished(m: BracketMatch): boolean {
   return m.status === 'finished' && m.homeGoals !== null && m.awayGoals !== null;
@@ -76,27 +85,111 @@ export function Bracket() {
   );
 }
 
-// Desktop: one column per round, cards spread vertically (`justify-around`) so
-// later, smaller rounds sit centred against the earlier ones — a tree shape
-// without explicit connector lines. Scrolls horizontally if it overflows.
+// Desktop: one column per round laid out as a real tree. Every round splits the
+// same `totalHeight` into N equal slots and centres its card in its slot, so a
+// card sits exactly between the two that feed it. Connector curves are drawn in
+// the gaps between rounds whenever a round halves cleanly into a multi-match
+// next round (the 32→16→8→4→2 main path; the third-place/final tail has no
+// connectors, matching the design). The whole block is centred (`mx-auto`) and
+// scrolls horizontally only when it overflows.
 function DesktopBracket({ rounds }: { rounds: BracketRound[] }) {
+  const maxCount = Math.max(...rounds.map((r) => r.matches.length));
+  const totalHeight = maxCount * ROW;
+  const slotFor = (round: BracketRound) => totalHeight / round.matches.length;
+
   return (
     <div className="hidden sm:block overflow-x-auto">
-      <div className="flex gap-4 min-w-max pb-2">
-        {rounds.map((round) => (
-          <div key={round.id} className="flex w-56 flex-col">
-            <div className="mb-3 text-center text-xs font-extrabold tracking-wider text-brand-navy">
-              {round.name}
+      <div className="mx-auto w-max pb-2">
+        {/* Round headers, aligned to the columns below. */}
+        <div className="flex">
+          {rounds.map((round, i) => (
+            <div key={round.id} className="flex">
+              <div
+                className="text-center text-xs font-extrabold tracking-wider text-brand-navy"
+                style={{ width: COL_W }}
+              >
+                {round.name}
+              </div>
+              {i < rounds.length - 1 && <div style={{ width: GAP }} />}
             </div>
-            <div className="flex flex-1 flex-col justify-around gap-3">
-              {round.matches.map((m) => (
-                <MatchCard key={m.id} match={m} />
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* Columns + connector gaps. */}
+        <div className="mt-3 flex" style={{ height: totalHeight }}>
+          {rounds.map((round, i) => {
+            const next = rounds[i + 1];
+            const hasConnectors =
+              next && next.matches.length >= 2 && round.matches.length === 2 * next.matches.length;
+            return (
+              <div key={round.id} className="flex">
+                <div className="flex flex-col" style={{ width: COL_W }}>
+                  {round.matches.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex items-center"
+                      style={{ height: slotFor(round) }}
+                    >
+                      <div className="w-full">
+                        <MatchCard match={m} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {i < rounds.length - 1 && (
+                  <div style={{ width: GAP }}>
+                    {hasConnectors && (
+                      <Connectors
+                        count={next.matches.length}
+                        slot={slotFor(round)}
+                        height={totalHeight}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
+  );
+}
+
+// Connector curves drawn in the gap between a round and the next. `count` is the
+// number of target matches; each target is fed by two source cards. `slot` is
+// the source round's slot height, so source centres are at (k+0.5)·slot and the
+// merged target centre at the midpoint of its two sources.
+function Connectors({ count, slot, height }: { count: number; slot: number; height: number }) {
+  const cx = GAP / 2;
+  return (
+    <svg width={GAP} height={height} className="overflow-visible" aria-hidden="true">
+      {Array.from({ length: count }, (_, j) => {
+        const topY = (2 * j + 0.5) * slot;
+        const bottomY = (2 * j + 1.5) * slot;
+        const midY = (2 * j + 1) * slot;
+        return (
+          <g key={j}>
+            <path
+              d={`M0,${topY} C${cx},${topY} ${cx},${midY} ${GAP},${midY}`}
+              fill="none"
+              stroke="var(--brand-orange)"
+              strokeOpacity={0.45}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <path
+              d={`M0,${bottomY} C${cx},${bottomY} ${cx},${midY} ${GAP},${midY}`}
+              fill="none"
+              stroke="var(--brand-orange)"
+              strokeOpacity={0.45}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
