@@ -1,21 +1,19 @@
 // File: frontend/src/components/Bracket.tsx
 // Purpose: Render the knockout bracket (eliminatorias) for the Estadísticas
 // "Llaves" view.
-// Functionality: Fetches the bracket via `useBracket` and renders two
-// responsive layouts from the same match card: a horizontal column-per-round
-// tree on desktop (sm and up, with horizontal scroll when it overflows) and a
-// vertical round selector — navigated with chevrons — on mobile, where a
-// horizontal tree would be unreadable at ~390px.
+// Functionality: Fetches the bracket via `useBracket` and renders a single
+// column-per-round tree with connector curves at every breakpoint. The tree
+// is what conveys a team's path and its possible future crossings, so on
+// mobile it stays a tree and simply scrolls horizontally to follow a branch,
+// instead of a calendar-ordered list that hides the bracket structure.
 // Role: Used by EstadisticasScreen's "Llaves" tab.
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from './Card';
 import { useBracket, type BracketMatch, type BracketRound } from '../hooks/useTournament';
 import { formatShortDate, formatTime } from '../lib/dateFormat';
 
 // Code of the "Por definir" placeholder team. When both sides are TBD the card
-// shows the FIFA slot label ("W89 vs W90") instead of two empty team rows.
+// shows a plain "TBD" instead of two empty team rows.
 const TBD_CODE = 'TBD';
 
 // Desktop bracket geometry (px). Each round divides the same total height into
@@ -66,7 +64,9 @@ export function Bracket() {
     );
   }
 
-  const rounds = bracket.data;
+  // Drop rounds with no matches loaded so they don't create empty columns or
+  // divide-by-zero slots.
+  const rounds = bracket.data.filter((r) => r.matches.length > 0);
   if (rounds.length === 0) {
     return (
       <Card>
@@ -77,28 +77,24 @@ export function Bracket() {
     );
   }
 
-  return (
-    <>
-      <DesktopBracket rounds={rounds} />
-      <MobileBracket rounds={rounds} />
-    </>
-  );
+  return <BracketTree rounds={rounds} />;
 }
 
-// Desktop: one column per round laid out as a real tree. Every round splits the
-// same `totalHeight` into N equal slots and centres its card in its slot, so a
-// card sits exactly between the two that feed it. Connector curves are drawn in
-// the gaps between rounds whenever a round halves cleanly into a multi-match
-// next round (the 32→16→8→4→2 main path; the third-place/final tail has no
-// connectors, matching the design). The whole block is centred (`mx-auto`) and
-// scrolls horizontally only when it overflows.
-function DesktopBracket({ rounds }: { rounds: BracketRound[] }) {
+// One column per round laid out as a real tree, used at every breakpoint. Every
+// round splits the same `totalHeight` into N equal slots and centres its card
+// in its slot, so a card sits exactly between the two that feed it. Connector
+// curves are drawn in the gaps between rounds whenever a round halves cleanly
+// into a multi-match next round (the 32→16→8→4→2 main path; the
+// third-place/final tail has no connectors, matching the design). The block is
+// centred (`mx-auto`) and scrolls horizontally — on mobile this lets the user
+// pan along any team's branch instead of losing the bracket structure.
+function BracketTree({ rounds }: { rounds: BracketRound[] }) {
   const maxCount = Math.max(...rounds.map((r) => r.matches.length));
   const totalHeight = maxCount * ROW;
   const slotFor = (round: BracketRound) => totalHeight / round.matches.length;
 
   return (
-    <div className="hidden sm:block overflow-x-auto">
+    <div className="overflow-x-auto">
       <div className="mx-auto w-max pb-2">
         {/* Round headers, aligned to the columns below. */}
         <div className="flex">
@@ -193,53 +189,12 @@ function Connectors({ count, slot, height }: { count: number; slot: number; heig
   );
 }
 
-// Mobile: a chevron round selector (same pattern as the Fixture round
-// selector) showing one round's matches as a vertical list.
-function MobileBracket({ rounds }: { rounds: BracketRound[] }) {
-  const [idx, setIdx] = useState(0);
-  const safeIdx = Math.min(idx, rounds.length - 1);
-  const round = rounds[safeIdx];
-  const canPrev = safeIdx > 0;
-  const canNext = safeIdx < rounds.length - 1;
-
-  return (
-    <div className="sm:hidden">
-      <div className="mb-3 rounded-xl bg-surface px-3 py-2.5 flex items-center justify-between border">
-        <button
-          type="button"
-          onClick={() => canPrev && setIdx(safeIdx - 1)}
-          disabled={!canPrev}
-          className="p-1 text-muted disabled:opacity-30 transition-transform active:scale-90"
-          aria-label="Llave anterior"
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <div className="text-sm font-bold text-ink truncate px-2">{round.name}</div>
-        <button
-          type="button"
-          onClick={() => canNext && setIdx(safeIdx + 1)}
-          disabled={!canNext}
-          className="p-1 text-brand-orange disabled:opacity-30 transition-transform active:scale-90"
-          aria-label="Llave siguiente"
-        >
-          <ChevronRight size={18} />
-        </button>
-      </div>
-      <div className="space-y-3">
-        {round.matches.map((m) => (
-          <MatchCard key={m.id} match={m} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// A single knockout match card, shared by both layouts.
+// A single knockout match card.
 function MatchCard({ match }: { match: BracketMatch }) {
   const finished = isFinished(match);
   const winner = winnerSide(match);
-  // A match is still undecided when both sides are the TBD placeholder; show
-  // the FIFA slot label instead of two empty team rows.
+  // A match is still undecided when both sides are the TBD placeholder; show a
+  // plain "TBD" instead of the FIFA slot label or two empty team rows.
   const undecided = match.homeTeam.code === TBD_CODE && match.awayTeam.code === TBD_CODE;
 
   return (
@@ -247,10 +202,8 @@ function MatchCard({ match }: { match: BracketMatch }) {
       <div className="mb-1.5 text-[10px] font-semibold text-muted">
         {formatShortDate(match.scheduledAt)} · {formatTime(match.scheduledAt)}
       </div>
-      {undecided && match.placeholderLabel ? (
-        <div className="py-1 text-center text-xs font-semibold text-muted">
-          {match.placeholderLabel}
-        </div>
+      {undecided ? (
+        <div className="py-1 text-center text-xs font-semibold text-muted">TBD</div>
       ) : (
         <div className="space-y-1">
           <TeamLine
