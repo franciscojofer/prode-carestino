@@ -157,11 +157,11 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
     }
   }
 
-  // A match is "pending team assignment" when it was created with the TBD
-  // placeholder (rounds of 32, R16, etc., before the previous round resolves).
-  const isPlayoffPending =
-    match.placeholderLabel !== null &&
-    (match.homeTeam.code === 'TBD' || match.awayTeam.code === 'TBD');
+  // Any knockout slot (created with a FIFA placeholder label) can have its
+  // teams assigned — and re-assigned afterwards, so the admin can correct a
+  // wrong pairing. We only hide the picker once the match is finished, when
+  // changing teams would invalidate the stored result.
+  const isPlayoffSlot = match.placeholderLabel !== null && match.status !== 'finished';
 
   return (
     <Card className="p-3">
@@ -173,7 +173,7 @@ function ResultCard({ match }: { match: AdminMatchRow }) {
         <StatusPill status={match.status} />
       </div>
 
-      {isPlayoffPending && <PlayoffPicker match={match} />}
+      {isPlayoffSlot && <PlayoffPicker match={match} />}
 
       <div
         className="grid items-center gap-2"
@@ -289,11 +289,11 @@ function GoalInput({ value, filled, onChange, ...rest }: GoalInputProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Playoff picker: shown for knockout matches whose pairings haven't been
-// resolved yet (both teams still pointing at the TBD placeholder). The admin
-// picks the real home / away teams once the previous round closes; the same
-// component re-uses already-set values so it doubles as a "change teams"
-// flow until the match is played.
+// Playoff picker: shown for every not-yet-finished knockout slot. The admin
+// picks the real home / away teams once the previous round closes, and can
+// re-pick afterwards to correct a wrong pairing — the component pre-fills any
+// already-assigned side, so it works both as a first assignment and as a
+// "change teams" flow until the match is played.
 // ---------------------------------------------------------------------------
 
 type PlayoffPickerProps = { match: AdminMatchRow };
@@ -310,6 +310,10 @@ function PlayoffPicker({ match }: PlayoffPickerProps) {
   const [homeId, setHomeId] = useState<string>(initialHome);
   const [awayId, setAwayId] = useState<string>(initialAway);
 
+  // Id of the "Por definir" placeholder, offered as an explicit option so the
+  // admin can reset a wrongly-assigned slot back to pending.
+  const tbdValue = String((teams.data ?? []).find((t) => t.code === 'TBD')?.id ?? '');
+
   // Group teams by group letter for an `<optgroup>` layout (48 unsorted
   // options is unusable on mobile).
   const grouped = (teams.data ?? [])
@@ -321,10 +325,13 @@ function PlayoffPicker({ match }: PlayoffPickerProps) {
     }, {});
   const groupKeys = Object.keys(grouped).sort();
 
+  // Both sides may only match when they are both "Por definir" (a reset);
+  // otherwise the two teams must differ.
+  const bothTbd = homeId !== '' && homeId === tbdValue && awayId === tbdValue;
   const canSave =
     homeId !== '' &&
     awayId !== '' &&
-    homeId !== awayId &&
+    (homeId !== awayId || bothTbd) &&
     (homeId !== initialHome || awayId !== initialAway);
 
   async function handleSave() {
@@ -354,6 +361,7 @@ function PlayoffPicker({ match }: PlayoffPickerProps) {
           teamsByGroup={grouped}
           ariaLabel="Equipo local"
           placeholder="Local"
+          tbdValue={tbdValue}
         />
         <TeamSelect
           value={awayId}
@@ -362,9 +370,10 @@ function PlayoffPicker({ match }: PlayoffPickerProps) {
           teamsByGroup={grouped}
           ariaLabel="Equipo visitante"
           placeholder="Visitante"
+          tbdValue={tbdValue}
         />
       </div>
-      {homeId !== '' && homeId === awayId && (
+      {homeId !== '' && homeId === awayId && !bothTbd && (
         <div className="mt-2 text-[11px] font-semibold text-danger">
           Local y visitante no pueden ser el mismo equipo.
         </div>
@@ -393,6 +402,8 @@ type TeamSelectProps = {
   teamsByGroup: Record<string, AdminTeamRow[]>;
   ariaLabel: string;
   placeholder: string;
+  // Value of the "Por definir" reset option; empty when the TBD team is absent.
+  tbdValue: string;
 };
 function TeamSelect({
   value,
@@ -401,6 +412,7 @@ function TeamSelect({
   teamsByGroup,
   ariaLabel,
   placeholder,
+  tbdValue,
 }: TeamSelectProps) {
   return (
     <select
@@ -410,6 +422,7 @@ function TeamSelect({
       className="w-full rounded-md border bg-surface px-2 py-1.5 text-xs font-semibold text-ink"
     >
       <option value="">{placeholder}…</option>
+      {tbdValue && <option value={tbdValue}>Por definir</option>}
       {groups.map((g) => (
         <optgroup key={g} label={`Grupo ${g}`}>
           {teamsByGroup[g].map((t) => (

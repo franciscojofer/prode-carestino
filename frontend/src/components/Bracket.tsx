@@ -89,11 +89,15 @@ export function Bracket() {
 // the top while the user scrolls down a long branch; on mobile this also lets
 // them pan horizontally to follow any team's path. A faint dashed line marks
 // the split between the two halves of the bracket (mobile only). The
-// third-place match, when present, is shown on its own below the tree.
+// third-place match, when present, sits inside the scroll area just below the
+// Final card, so it scrolls together with the tree rather than staying pinned.
 function BracketTree({ rounds, thirdPlace }: { rounds: BracketRound[]; thirdPlace: BracketMatch | null }) {
   const maxCount = Math.max(...rounds.map((r) => r.matches.length));
   const totalHeight = maxCount * ROW;
   const slotFor = (round: BracketRound) => totalHeight / round.matches.length;
+  // Left offset of the Final (last) column, used to place the third-place card
+  // beneath it inside the bracket's coordinate space.
+  const lastColumnLeft = (rounds.length - 1) * (COL_W + GAP);
 
   return (
     <div>
@@ -155,21 +159,24 @@ function BracketTree({ rounds, thirdPlace }: { rounds: BracketRound[]; thirdPlac
                 </div>
               );
             })}
+
+            {/* Third-place match, off the main semifinal→final path. Positioned
+                under the Final card, inside the scroll area so it moves with
+                the tree. */}
+            {thirdPlace && (
+              <div
+                className="absolute"
+                style={{ left: lastColumnLeft, top: totalHeight / 2 + ROW * 0.75, width: COL_W }}
+              >
+                <div className="mb-1 text-center text-[10px] font-extrabold tracking-wider text-muted">
+                  TERCER PUESTO
+                </div>
+                <MatchCard match={thirdPlace} />
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Third-place match, off the main semifinal→final path. */}
-      {thirdPlace && (
-        <div className="mt-5">
-          <div className="mb-2 text-center text-xs font-extrabold tracking-wider text-brand-navy">
-            TERCER PUESTO
-          </div>
-          <div className="mx-auto" style={{ width: COL_W }}>
-            <MatchCard match={thirdPlace} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

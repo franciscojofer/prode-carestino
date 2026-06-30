@@ -197,7 +197,12 @@ export async function updateMatch(
   const finalAwayTeamId = input.awayTeamId ?? match.awayTeamId;
   if (input.homeTeamId !== undefined || input.awayTeamId !== undefined) {
     if (finalHomeTeamId === finalAwayTeamId) {
-      throw new ValidationError('Los equipos local y visitante deben ser distintos');
+      // Both sides equal is allowed only for the "Por definir" (TBD)
+      // placeholder, which resets an undecided knockout slot back to pending.
+      const sameTeam = await prisma.team.findUnique({ where: { id: finalHomeTeamId } });
+      if (sameTeam?.code !== 'TBD') {
+        throw new ValidationError('Los equipos local y visitante deben ser distintos');
+      }
     }
     if (input.homeTeamId !== undefined) {
       const t = await prisma.team.findUnique({ where: { id: input.homeTeamId } });
