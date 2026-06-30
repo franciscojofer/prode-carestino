@@ -16,7 +16,7 @@ import { useGroups, type GroupTable, type GroupTeam } from '../hooks/useTourname
 type StatsView = 'groups' | 'bracket';
 
 export function EstadisticasScreen() {
-  const [view, setView] = useState<StatsView>('groups');
+  const [view, setView] = useState<StatsView>('bracket');
 
   return (
     <Layout title="Estadísticas">

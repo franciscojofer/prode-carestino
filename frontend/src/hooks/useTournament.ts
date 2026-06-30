@@ -202,11 +202,14 @@ export type BracketRound = {
   matches: BracketMatch[];
 };
 
+// `rounds` is the main path (Dieciseisavos → … → Final, ordered to match the
+// real bracket topology); `thirdPlace` is the consolation match, if any.
+export type BracketResult = { rounds: BracketRound[]; thirdPlace: BracketMatch | null };
+
 export function useBracket() {
   return useQuery({
     queryKey: ['tournament', 'bracket'],
-    queryFn: () => apiFetch<{ rounds: BracketRound[] }>('/tournament/bracket'),
-    select: (data) => data.rounds,
+    queryFn: () => apiFetch<BracketResult>('/tournament/bracket'),
   });
 }
 

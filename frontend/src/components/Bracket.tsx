@@ -66,7 +66,7 @@ export function Bracket() {
 
   // Drop rounds with no matches loaded so they don't create empty columns or
   // divide-by-zero slots.
-  const rounds = bracket.data.filter((r) => r.matches.length > 0);
+  const rounds = bracket.data.rounds.filter((r) => r.matches.length > 0);
   if (rounds.length === 0) {
     return (
       <Card>
@@ -77,77 +77,99 @@ export function Bracket() {
     );
   }
 
-  return <BracketTree rounds={rounds} />;
+  return <BracketTree rounds={rounds} thirdPlace={bracket.data.thirdPlace} />;
 }
 
 // One column per round laid out as a real tree, used at every breakpoint. Every
 // round splits the same `totalHeight` into N equal slots and centres its card
 // in its slot, so a card sits exactly between the two that feed it. Connector
 // curves are drawn in the gaps between rounds whenever a round halves cleanly
-// into a multi-match next round (the 32→16→8→4→2 main path; the
-// third-place/final tail has no connectors, matching the design). The block is
-// centred (`mx-auto`) and scrolls horizontally — on mobile this lets the user
-// pan along any team's branch instead of losing the bracket structure.
-function BracketTree({ rounds }: { rounds: BracketRound[] }) {
+// into a multi-match next round (the 32→16→8→4→2 main path). The whole tree
+// lives in a single 2-axis scroll box so the round headers can stay pinned to
+// the top while the user scrolls down a long branch; on mobile this also lets
+// them pan horizontally to follow any team's path. A faint dashed line marks
+// the split between the two halves of the bracket (mobile only). The
+// third-place match, when present, is shown on its own below the tree.
+function BracketTree({ rounds, thirdPlace }: { rounds: BracketRound[]; thirdPlace: BracketMatch | null }) {
   const maxCount = Math.max(...rounds.map((r) => r.matches.length));
   const totalHeight = maxCount * ROW;
   const slotFor = (round: BracketRound) => totalHeight / round.matches.length;
 
   return (
-    <div className="overflow-x-auto">
-      <div className="mx-auto w-max pb-2">
-        {/* Round headers, aligned to the columns below. */}
-        <div className="flex">
-          {rounds.map((round, i) => (
-            <div key={round.id} className="flex">
-              <div
-                className="text-center text-xs font-extrabold tracking-wider text-brand-navy"
-                style={{ width: COL_W }}
-              >
-                {round.name}
-              </div>
-              {i < rounds.length - 1 && <div style={{ width: GAP }} />}
-            </div>
-          ))}
-        </div>
-
-        {/* Columns + connector gaps. */}
-        <div className="mt-3 flex" style={{ height: totalHeight }}>
-          {rounds.map((round, i) => {
-            const next = rounds[i + 1];
-            const hasConnectors =
-              next && next.matches.length >= 2 && round.matches.length === 2 * next.matches.length;
-            return (
+    <div>
+      <div className="overflow-auto max-h-[74vh]">
+        <div className="w-max pb-2">
+          {/* Round headers, pinned to the top of the scroll box on scroll. */}
+          <div className="sticky top-0 z-20 flex bg-surface-alt">
+            {rounds.map((round, i) => (
               <div key={round.id} className="flex">
-                <div className="flex flex-col" style={{ width: COL_W }}>
-                  {round.matches.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex items-center"
-                      style={{ height: slotFor(round) }}
-                    >
-                      <div className="w-full">
-                        <MatchCard match={m} />
-                      </div>
-                    </div>
-                  ))}
+                <div
+                  className="py-1.5 text-center text-xs font-extrabold tracking-wider text-brand-navy"
+                  style={{ width: COL_W }}
+                >
+                  {round.name}
                 </div>
-                {i < rounds.length - 1 && (
-                  <div style={{ width: GAP }}>
-                    {hasConnectors && (
-                      <Connectors
-                        count={next.matches.length}
-                        slot={slotFor(round)}
-                        height={totalHeight}
-                      />
-                    )}
-                  </div>
-                )}
+                {i < rounds.length - 1 && <div style={{ width: GAP }} />}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Columns + connector gaps. */}
+          <div className="relative mt-3 flex" style={{ height: totalHeight }}>
+            {/* Subtle separator between the bracket's two halves (mobile). */}
+            <div
+              className="sm:hidden pointer-events-none absolute inset-x-0 border-t border-dashed border-brand-navy/15"
+              style={{ top: totalHeight / 2 }}
+              aria-hidden="true"
+            />
+            {rounds.map((round, i) => {
+              const next = rounds[i + 1];
+              const hasConnectors =
+                next && next.matches.length >= 2 && round.matches.length === 2 * next.matches.length;
+              return (
+                <div key={round.id} className="flex">
+                  <div className="flex flex-col" style={{ width: COL_W }}>
+                    {round.matches.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex items-center"
+                        style={{ height: slotFor(round) }}
+                      >
+                        <div className="w-full">
+                          <MatchCard match={m} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {i < rounds.length - 1 && (
+                    <div style={{ width: GAP }}>
+                      {hasConnectors && (
+                        <Connectors
+                          count={next.matches.length}
+                          slot={slotFor(round)}
+                          height={totalHeight}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {/* Third-place match, off the main semifinal→final path. */}
+      {thirdPlace && (
+        <div className="mt-5">
+          <div className="mb-2 text-center text-xs font-extrabold tracking-wider text-brand-navy">
+            TERCER PUESTO
+          </div>
+          <div className="mx-auto" style={{ width: COL_W }}>
+            <MatchCard match={thirdPlace} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
