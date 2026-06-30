@@ -14,6 +14,7 @@
     "seed:dev": "tsx prisma/seed-dev.ts",
     "sync:schedule": "tsx prisma/sync-schedule.ts",
     "fix:times": "tsx prisma/fix-match-times.ts",
+    "fix:labels": "tsx prisma/fix-knockout-labels.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
